@@ -176,8 +176,7 @@ export function SimpleEditor() {
       StarterKit.configure({
         horizontalRule: false,
         link: {
-          openOnClick: false,
-          enableClickSelection: true,
+          openOnClick: true,
         },
       }),
       HorizontalRule,
