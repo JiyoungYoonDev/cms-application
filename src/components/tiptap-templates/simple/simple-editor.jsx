@@ -74,6 +74,15 @@ import { handleImageUpload, MAX_FILE_SIZE } from '@/lib/tiptap-utils';
 import '@/components/tiptap-templates/simple/simple-editor.scss';
 
 import content from '@/components/tiptap-templates/simple/data/content.json';
+import { Dropdown } from '@/components/ui/form/Dropdown';
+import { Input } from '@/components/ui/input';
+import { Fields } from '@/components/ui/form/Fields';
+import { Field } from '@/components/ui/field';
+import {
+  useCourseCategoriesQuery,
+  useCreateCourseCategoryMutation,
+  useCreateProblemBookMutation,
+} from '@/hooks/queries';
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
   return (
@@ -159,7 +168,10 @@ export function SimpleEditor() {
   const isMobile = useIsBreakpoint();
   const { height } = useWindowSize();
   const [mobileView, setMobileView] = useState('main');
+  const [category, setCategory] = useState('');
+  const [difficulty, setDifficulty] = useState('');
   const toolbarRef = useRef(null);
+  const createProblemBookMutation = useCreateProblemBookMutation();
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -200,6 +212,26 @@ export function SimpleEditor() {
     content,
   });
 
+  const handleSubmit = async () => {
+    if (!editor) {
+      return;
+    }
+
+    const submitContent = editor.getJSON();
+    const payload = {
+      problem_title: submitContent.content[0].content[0].text || 'Untitled',
+      problem_description: submitContent,
+      problem_category: category,
+      problem_difficulty: difficulty,
+    };
+    console.log('Submitting content:', payload);
+    try {
+      await createProblemBookMutation.mutateAsync(payload);
+    } catch (error) {
+      console.error('Error submitting content:', error);
+    }
+  };
+
   const rect = useCursorVisibility({
     editor,
     overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
@@ -213,7 +245,7 @@ export function SimpleEditor() {
 
   return (
     <div className='simple-editor-container'>
-      <div className='simple-editor-wrapper'>
+      <div className='simple-editor-wrapper border rounded-lg'>
         <EditorContext.Provider value={{ editor }}>
           <Toolbar
             ref={toolbarRef}
@@ -245,6 +277,16 @@ export function SimpleEditor() {
             className='simple-editor-content'
           />
         </EditorContext.Provider>
+      </div>
+      <div className='simple-editor-actions'>
+        <Button
+          type='button'
+          variant='primary'
+          onClick={handleSubmit}
+          disabled={createProblemBookMutation.isPending}
+        >
+          {createProblemBookMutation.isPending ? 'Saving...' : 'Submit'}
+        </Button>
       </div>
     </div>
   );

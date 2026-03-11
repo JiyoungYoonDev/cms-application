@@ -3,6 +3,7 @@ import './globals.css';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/ui/app-sidebar';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { QueryProvider } from '@/providers/query-provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -25,13 +26,15 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset className='min-h-screen bg-admin-light p-4 md:p-6 lg:p-8'>
-            <SidebarTrigger />
-            <div className='mx-auto w-full max-w-4xl'>{children}</div>
-          </SidebarInset>
-        </SidebarProvider>
+        <QueryProvider>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset className='min-h-screen bg-admin-light p-4 md:p-6 lg:p-8'>
+              <SidebarTrigger />
+              <div className='w-full'>{children}</div>
+            </SidebarInset>
+          </SidebarProvider>
+        </QueryProvider>
       </body>
     </html>
   );

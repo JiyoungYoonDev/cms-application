@@ -342,7 +342,7 @@ export const handleImageUpload = async (file, onProgress, abortSignal) => {
     onProgress?.({ progress })
   }
 
-  return "/images/tiptap-ui-placeholder-image.jpg"
+  return URL.createObjectURL(file)
 }
 
 const ATTR_WHITESPACE =
