@@ -12,6 +12,10 @@ export function AuthProvider({ children }) {
   const router = useRouter();
 
   useEffect(() => {
+    if (window.location.pathname === '/login') {
+      setIsLoading(false);
+      return;
+    }
     getMeApi()
       .then((res) => setUser(res?.data ?? null))
       .catch(() => setUser(null))
