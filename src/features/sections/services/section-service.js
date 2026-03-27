@@ -10,8 +10,8 @@ export const getSectionById = async (courseId, sectionId) => {
   return apiFetch(sectionRoutes.detail(courseId, sectionId));
 };
 
-export const createSection = async ({ bookId, payload }) => {
-  const result = await apiFetch(sectionRoutes.create(bookId), {
+export const createSection = async ({ courseId, payload }) => {
+  const result = await apiFetch(sectionRoutes.create(courseId), {
     method: 'POST',
     body: payload,
   });

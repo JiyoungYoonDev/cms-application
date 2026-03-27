@@ -9,11 +9,11 @@ export function useCreateSection() {
     mutationFn: createSection,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.courses.detail(variables.bookId),
+        queryKey: queryKeys.courses.detail(variables.courseId),
       });
 
       queryClient.invalidateQueries({
-        queryKey: queryKeys.sections.list(variables.bookId),
+        queryKey: queryKeys.sections.list(variables.courseId),
       });
     },
   });
