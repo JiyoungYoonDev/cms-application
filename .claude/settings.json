@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=\"$CLAUDE_FILE_PATH\"; if echo \"$FILE\" | grep -qE \"\\.(jsx?|tsx?)$\" && ! echo \"$FILE\" | grep -qE \"\\.(test|spec)\\.(jsx?|tsx?)$\" && echo \"$FILE\" | grep -qE \"src/(features|components|hooks|services|lib|stores)/\"; then echo \"[test-writer reminder] A source file was created or modified: $FILE — Consider using the test-writer agent to generate tests for this file.\"; fi'"
+          }
+        ]
+      }
+    ]
+  }
+}

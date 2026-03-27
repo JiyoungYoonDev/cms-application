@@ -23,6 +23,7 @@ import {
   LogOut,
   Building2,
 } from 'lucide-react';
+import { ThemeToggle } from '../common/tiptap/simple/theme-toggle';
 
 export function AppSidebar() {
   return (
@@ -44,9 +45,7 @@ export function AppSidebar() {
                       <span className='font-semibold text-admin-dark'>
                         Code-Ha-Ja
                       </span>
-                      <span className='text-xs text-admin-dark'>
-                        User Role
-                      </span>
+                      <span className='text-xs text-admin-dark'>User Role</span>
                     </div>
                   </div>
                   <ChevronDown className='ml-auto text-admin-dark' size={16} />
@@ -72,9 +71,13 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarMenu className='mt-2 gap-1'>
             {[
-              { title: 'Dashboard', icon: LayoutDashboard },
-              { title: 'Projects', icon: FolderKanban },
-              { title: 'Team', icon: Users2 },
+              {
+                title: 'Dashboard',
+                icon: LayoutDashboard,
+                href: '/admin/courses',
+              },
+              { title: 'Projects', icon: FolderKanban, href: '/projects' },
+              { title: 'Team', icon: Users2, href: '/team' },
             ].map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
@@ -82,7 +85,7 @@ export function AppSidebar() {
                   className='hover:bg-admin-light transition-colors group'
                 >
                   <a
-                    href='#'
+                    href={item.href}
                     className='flex items-center gap-3 px-3 py-2 rounded-md'
                   >
                     <item.icon
@@ -101,6 +104,7 @@ export function AppSidebar() {
       <SidebarFooter className='p-4 border-t border-admin-dark'>
         <SidebarMenu>
           <SidebarMenuItem>
+            <ThemeToggle />
             <SidebarMenuButton className='w-full gap-3 text-admin-dark hover:text-admin-danger hover:bg-admin-light transition-colors'>
               <LogOut size={18} />
               <span className='font-medium'>Logout</span>

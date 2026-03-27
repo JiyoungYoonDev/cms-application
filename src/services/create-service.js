@@ -1,8 +1,15 @@
-import { apiFetch } from '@/lib/api-client';
+import { apiFetch } from '@/lib/api/api-client';
 
 export const createProblemBook = async (payload) => {
-  return apiFetch('/api/problem-books', {
+  return apiFetch('/api/problem-courses', {
     method: 'POST',
+    body: payload,
+  });
+};
+
+export const updateProblemBook = async (bookId, payload) => {
+  return apiFetch(`/api/problem-courses/${bookId}`, {
+    method: 'PUT',
     body: payload,
   });
 };
