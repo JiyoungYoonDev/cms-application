@@ -28,19 +28,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-background'>
+    <div className='min-h-screen flex items-center justify-center bg-zinc-950'>
       <div className='w-full max-w-sm'>
         <div className='flex flex-col items-center gap-2 mb-8'>
-          <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-admin-primary text-white'>
+          <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-700 text-white'>
             <Building2 size={24} />
           </div>
-          <h1 className='text-xl font-bold text-foreground'>CodeHaja CMS</h1>
-          <p className='text-sm text-muted-foreground'>관리자 계정으로 로그인하세요</p>
+          <h1 className='text-xl font-bold text-zinc-100'>CodeHaja CMS</h1>
+          <p className='text-sm text-zinc-400'>관리자 계정으로 로그인하세요</p>
         </div>
 
-        <form onSubmit={handleSubmit} className='bg-card rounded-xl border border-border p-6 shadow-sm flex flex-col gap-4'>
+        <form onSubmit={handleSubmit} className='bg-zinc-900 rounded-xl border border-zinc-800 p-6 shadow-sm flex flex-col gap-4'>
           <div className='flex flex-col gap-1.5'>
-            <label className='text-sm font-medium text-foreground' htmlFor='email'>
+            <label className='text-sm font-medium text-zinc-300' htmlFor='email'>
               이메일
             </label>
             <input
@@ -48,7 +48,7 @@ export default function LoginPage() {
               type='email'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className='h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-ring'
+              className='h-9 w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-zinc-500 placeholder:text-zinc-500'
               placeholder='admin@codehaja.com'
               required
               autoComplete='email'
@@ -56,7 +56,7 @@ export default function LoginPage() {
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <label className='text-sm font-medium text-foreground' htmlFor='password'>
+            <label className='text-sm font-medium text-zinc-300' htmlFor='password'>
               비밀번호
             </label>
             <input
@@ -64,7 +64,7 @@ export default function LoginPage() {
               type='password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className='h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-ring'
+              className='h-9 w-full rounded-md border border-zinc-700 bg-zinc-800 text-zinc-100 px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-zinc-500'
               placeholder='••••••••'
               required
               autoComplete='current-password'
@@ -72,13 +72,13 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className='text-sm text-red-500'>{error}</p>
+            <p className='text-sm text-red-400'>{error}</p>
           )}
 
           <button
             type='submit'
             disabled={isLoading}
-            className='h-9 w-full rounded-md bg-admin-primary text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed'
+            className='h-9 w-full rounded-md bg-zinc-100 text-zinc-900 text-sm font-semibold hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
           >
             {isLoading ? '로그인 중...' : '로그인'}
           </button>
