@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
   async function logout() {
     await logoutApi().catch(() => {});
     setUser(null);
-    router.replace('/login');
+    window.location.href = '/login';
   }
 
   return (

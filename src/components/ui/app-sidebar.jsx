@@ -48,7 +48,7 @@ export function AppSidebar() {
                     </div>
                     <div className='flex flex-col items-start leading-tight'>
                       <span className='font-semibold text-admin-dark'>
-                        {user?.name ?? 'CodeHaja'}
+                        {user?.name ?? user?.email ?? 'CodeHaja'}
                       </span>
                       <span className='text-xs text-admin-dark'>{user?.role ?? ''}</span>
                     </div>

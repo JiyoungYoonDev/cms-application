@@ -28,19 +28,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-admin-light'>
+    <div className='min-h-screen flex items-center justify-center bg-background'>
       <div className='w-full max-w-sm'>
         <div className='flex flex-col items-center gap-2 mb-8'>
           <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-admin-primary text-white'>
             <Building2 size={24} />
           </div>
-          <h1 className='text-xl font-bold text-admin-dark'>CodeHaja CMS</h1>
+          <h1 className='text-xl font-bold text-foreground'>CodeHaja CMS</h1>
           <p className='text-sm text-muted-foreground'>관리자 계정으로 로그인하세요</p>
         </div>
 
-        <form onSubmit={handleSubmit} className='bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-4'>
+        <form onSubmit={handleSubmit} className='bg-card rounded-xl border border-border p-6 shadow-sm flex flex-col gap-4'>
           <div className='flex flex-col gap-1.5'>
-            <label className='text-sm font-medium text-admin-dark' htmlFor='email'>
+            <label className='text-sm font-medium text-foreground' htmlFor='email'>
               이메일
             </label>
             <input
@@ -48,7 +48,7 @@ export default function LoginPage() {
               type='email'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className='h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-ring'
+              className='h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-ring'
               placeholder='admin@codehaja.com'
               required
               autoComplete='email'
@@ -56,7 +56,7 @@ export default function LoginPage() {
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <label className='text-sm font-medium text-admin-dark' htmlFor='password'>
+            <label className='text-sm font-medium text-foreground' htmlFor='password'>
               비밀번호
             </label>
             <input
@@ -64,7 +64,7 @@ export default function LoginPage() {
               type='password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className='h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-ring'
+              className='h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm outline-none focus:ring-1 focus:ring-ring'
               placeholder='••••••••'
               required
               autoComplete='current-password'
