@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { SectionForm } from '@/components/admin/cms/section-form';
+import SectionBasicInfoFields from '@/features/sections/components/form/section-basic-info-fields';
 import FormPageShell from '@/components/common/forms/form-page-shell';
 import { useCreateSection } from '@/features/sections/hooks/use-section-mutation';
 import { Save, ChevronLeft } from 'lucide-react';
@@ -39,13 +39,8 @@ export default function NewSectionPage({ params }) {
   return (
     <FormPageShell
       main={
-        <div className='space-y-8'>
-          <div>
-            <h2 className='text-xs font-black uppercase tracking-widest opacity-40 mb-4'>
-              Section Info
-            </h2>
-            <SectionForm values={values} onChange={setValues} />
-          </div>
+        <div className='space-y-12'>
+          <SectionBasicInfoFields formData={values} setFormData={setValues} />
         </div>
       }
       sidebar={
