@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
-import { Building2, Sun, Moon } from 'lucide-react';
+import { Building2 } from 'lucide-react';
+import { ThemeToggle } from '@/components/common/tiptap/simple/theme-toggle';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -12,20 +13,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const dark = document.documentElement.classList.contains('dark') ||
-      window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setIsDark(dark);
-    document.documentElement.classList.toggle('dark', dark);
-  }, []);
-
-  function toggleTheme() {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle('dark', next);
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -44,13 +31,9 @@ export default function LoginPage() {
   return (
     <div className='min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 transition-colors'>
       {/* Theme toggle — top right */}
-      <button
-        onClick={toggleTheme}
-        className='fixed top-4 right-4 p-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:opacity-80 transition-colors'
-        aria-label='Toggle theme'
-      >
-        {isDark ? <Sun size={16} /> : <Moon size={16} />}
-      </button>
+      <div className='fixed top-4 right-4'>
+        <ThemeToggle />
+      </div>
 
       <div className='w-full max-w-sm'>
         <div className='flex flex-col items-center gap-2 mb-8'>

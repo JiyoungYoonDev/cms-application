@@ -8,28 +8,30 @@ import { MoonStarIcon } from '@/components/common/tiptap/tiptap-icons/moon-star-
 import { SunIcon } from '@/components/common/tiptap/tiptap-icons/sun-icon';
 import { useEffect, useState } from 'react';
 
+const STORAGE_KEY = 'cms-theme';
+
+function getInitialDark() {
+  if (typeof window === 'undefined') return false;
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored !== null) return stored === 'dark';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
 export function ThemeToggle() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => setIsDarkMode(mediaQuery.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    const dark = getInitialDark();
+    setIsDarkMode(dark);
+    document.documentElement.classList.toggle('dark', dark);
   }, []);
 
-  useEffect(() => {
-    const initialDarkMode =
-      !!document.querySelector('meta[name="color-scheme"][content="dark"]') ||
-      window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setIsDarkMode(initialDarkMode);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, [isDarkMode]);
-
-  const toggleDarkMode = () => setIsDarkMode((isDark) => !isDark);
+  const toggleDarkMode = () => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light');
+  };
 
   return (
     <Button
