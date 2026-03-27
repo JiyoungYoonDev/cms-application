@@ -33,6 +33,7 @@ export async function apiFetch(path, options = {}) {
   }
 
   const response = await fetch(url, {
+    credentials: 'include',
     ...options,
     headers,
     body,

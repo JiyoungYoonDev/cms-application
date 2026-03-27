@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Sidebar,
   SidebarContent,
@@ -24,8 +26,11 @@ import {
   Building2,
 } from 'lucide-react';
 import { ThemeToggle } from '../common/tiptap/simple/theme-toggle';
+import { useAuth } from '@/contexts/auth-context';
 
 export function AppSidebar() {
+  const { user, logout } = useAuth();
+
   return (
     <Sidebar side='left' className=''>
       <SidebarHeader className='p-4'>
@@ -43,9 +48,9 @@ export function AppSidebar() {
                     </div>
                     <div className='flex flex-col items-start leading-tight'>
                       <span className='font-semibold text-admin-dark'>
-                        Code-Ha-Ja
+                        {user?.name ?? 'CodeHaja'}
                       </span>
-                      <span className='text-xs text-admin-dark'>User Role</span>
+                      <span className='text-xs text-admin-dark'>{user?.role ?? ''}</span>
                     </div>
                   </div>
                   <ChevronDown className='ml-auto text-admin-dark' size={16} />
@@ -105,7 +110,10 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <ThemeToggle />
-            <SidebarMenuButton className='w-full gap-3 text-admin-dark hover:text-admin-danger hover:bg-admin-light transition-colors'>
+            <SidebarMenuButton
+              onClick={logout}
+              className='w-full gap-3 text-admin-dark hover:text-admin-danger hover:bg-admin-light transition-colors cursor-pointer'
+            >
               <LogOut size={18} />
               <span className='font-medium'>Logout</span>
             </SidebarMenuButton>
