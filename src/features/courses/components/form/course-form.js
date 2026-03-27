@@ -81,7 +81,7 @@ export default function CourseForm({
       categoryId: formData.categoryId,
       difficulty: formData.difficulty || null,
       course_sections: sections,
-      detailedCurriculum: editorContent,
+      detailedCurriculum: editorContent != null ? JSON.stringify(editorContent) : null,
       status,
       sections,
     };
