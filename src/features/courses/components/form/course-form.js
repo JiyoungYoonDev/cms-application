@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import FormPageShell from '@/components/common/forms/form-page-shell';
 import CourseBasicInfoFields from './course-basic-info-fields';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Rocket, Save, ChevronLeft } from 'lucide-react';
 import { createEmptyCourseForm } from '../../utils/course-form-mappers';
 import { useCreateCourse, useUpdateCourse } from '../../hooks';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 export default function CourseForm({
   mode = 'create',
@@ -22,9 +23,12 @@ export default function CourseForm({
   const [formData, setFormData] = useState(createEmptyCourseForm());
   const [sections, setSections] = useState([]);
   const [editorContent, setEditorContent] = useState(undefined);
+  const [isDirty, setIsDirty] = useState(false);
+  const initializedRef = useRef(false);
 
   const updateCourse = useUpdateCourse();
   const createCourse = useCreateCourse();
+  const { confirmLeave } = useUnsavedChanges(isDirty);
 
   // Edit Mode
   useEffect(() => {
@@ -61,8 +65,16 @@ export default function CourseForm({
       } else {
         setEditorContent(undefined);
       }
+      setTimeout(() => { initializedRef.current = true; }, 0);
+    } else if (mode === 'create') {
+      initializedRef.current = true;
     }
   }, [mode, initialCourse]);
+
+  // Mark dirty whenever form changes after initialization
+  useEffect(() => {
+    if (initializedRef.current) setIsDirty(true);
+  }, [formData, sections, editorContent]);
 
   const handleSubmit = async (status) => {
     if (!formData.difficulty) {
@@ -93,6 +105,7 @@ export default function CourseForm({
       } else {
         await createCourse.mutateAsync(payload);
       }
+      setIsDirty(false);
       router.push('/admin/courses');
     } catch (error) {
       console.error('Submit Error:', error);
@@ -163,7 +176,7 @@ export default function CourseForm({
                 variant='ghost'
                 size='sm'
                 className='w-full justify-start text-muted-foreground'
-                onClick={() => router.back()}
+                onClick={() => { if (confirmLeave()) router.back(); }}
               >
                 <ChevronLeft size={16} className='mr-1' /> Back to list
               </Button>

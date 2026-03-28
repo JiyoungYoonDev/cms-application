@@ -3,6 +3,7 @@
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { generateHTML } from '@tiptap/core';
+import DOMPurify from 'dompurify';
 import { StarterKit } from '@tiptap/starter-kit';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { Highlight } from '@tiptap/extension-highlight';
@@ -40,11 +41,12 @@ function TiptapPreview({ doc }) {
     return <p className='text-sm text-muted-foreground italic'>No content</p>;
   }
   try {
-    const html = generateHTML(doc, PREVIEW_EXTENSIONS);
+    const rawHtml = generateHTML(doc, PREVIEW_EXTENSIONS);
+    const safeHtml = DOMPurify.sanitize(rawHtml, { USE_PROFILES: { html: true } });
     return (
       <div
         className='text-sm leading-relaxed [&_h1]:text-xl [&_h1]:font-bold [&_h2]:text-lg [&_h2]:font-bold [&_h3]:font-semibold [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_code]:bg-muted [&_code]:px-1 [&_code]:rounded [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:rounded-lg [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground [&_strong]:font-bold [&_em]:italic [&_a]:underline [&_a]:text-primary'
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={{ __html: safeHtml }}
       />
     );
   } catch {
