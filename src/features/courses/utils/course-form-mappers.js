@@ -10,6 +10,6 @@ export const createEmptyCourseForm = () => ({
   learners_count: 0,
   badge_type: 'New',
   provider: 'Codehaja',
-  image_url: '',
+  imageUrl: '',
   status: 'DRAFT'
 });

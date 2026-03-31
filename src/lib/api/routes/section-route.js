@@ -7,4 +7,5 @@ export const sectionRoutes = {
   detail: (courseId, sectionId) => `${COURSES_BASE}/${courseId}/sections/${sectionId}`,
   update: (courseId, sectionId) => `${COURSES_BASE}/${courseId}/sections/${sectionId}`,
   remove: (courseId, sectionId) => `${SECTION_BASE}/${courseId}/sections/${sectionId}`,
+  reorder: (courseId) => `${COURSES_BASE}/${courseId}/sections/reorder`,
 };

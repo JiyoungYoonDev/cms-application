@@ -1,10 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 
 export const getLectureColumns = ({
   onEdit = () => {},
   onDelete = () => {},
+  onMoveUp = null,
+  onMoveDown = null,
 } = {}) => [
   {
     accessorKey: 'sortOrder',
@@ -82,10 +84,36 @@ export const getLectureColumns = ({
   {
     id: 'actions',
     header: '',
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const lecture = row.original;
+      const allRows = table.getRowModel().rows;
+      const idx = allRows.findIndex((r) => r.id === row.id);
+      const isFirst = idx === 0;
+      const isLast = idx === allRows.length - 1;
       return (
         <div className='flex items-center justify-end gap-1'>
+          {onMoveUp && (
+            <Button
+              size='icon'
+              variant='ghost'
+              disabled={isFirst}
+              className='h-8 w-8 text-slate-500 hover:text-white hover:bg-slate-800 disabled:opacity-20'
+              onClick={(e) => { e.stopPropagation(); onMoveUp(lecture, idx); }}
+            >
+              <ChevronUp size={14} />
+            </Button>
+          )}
+          {onMoveDown && (
+            <Button
+              size='icon'
+              variant='ghost'
+              disabled={isLast}
+              className='h-8 w-8 text-slate-500 hover:text-white hover:bg-slate-800 disabled:opacity-20'
+              onClick={(e) => { e.stopPropagation(); onMoveDown(lecture, idx); }}
+            >
+              <ChevronDown size={14} />
+            </Button>
+          )}
           <Button
             size='icon'
             variant='ghost'

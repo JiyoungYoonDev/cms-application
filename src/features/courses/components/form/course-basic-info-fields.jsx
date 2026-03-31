@@ -7,7 +7,7 @@ import { Dropdown } from '@/components/ui/form/Dropdown';
 import { Fields } from '@/components/ui/form/Fields';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Check, X, Clock, Hash } from 'lucide-react';
+import { Check, X, Clock, Hash, ImageIcon } from 'lucide-react';
 import {
   useCourseCategoriesQuery,
   useCreateCourseCategoryMutation,
@@ -185,7 +185,30 @@ export default function CourseBasicInfoFields({ formData, setFormData }) {
           ]}
         />
 
-        {/* 3. Metrics Grid (Hours & Projects) */}
+        {/* 3. Thumbnail URL */}
+        <div className='pt-4 border-t border-dashed space-y-3'>
+          <label className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40 ml-1'>
+            <ImageIcon size={12} /> Thumbnail URL
+          </label>
+          <Input
+            placeholder='https://example.com/thumbnail.jpg'
+            className='h-12 border-input/60'
+            value={formData.imageUrl ?? ''}
+            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+          />
+          {formData.imageUrl && (
+            <div className='relative w-full aspect-video rounded-2xl overflow-hidden border border-input/40 bg-muted'>
+              <img
+                src={formData.imageUrl}
+                alt='Thumbnail preview'
+                className='w-full h-full object-cover'
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* 4. Metrics Grid (Hours & Projects) */}
         <div className='grid grid-cols-2 gap-6 pt-4 border-t border-dashed'>
           <div className='space-y-3'>
             <label className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40 ml-1'>

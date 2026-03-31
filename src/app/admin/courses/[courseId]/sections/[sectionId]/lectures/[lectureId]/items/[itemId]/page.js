@@ -14,6 +14,7 @@ import { TaskItem, TaskList } from '@tiptap/extension-list';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/common/layout/page-header';
 import { useLectureItemById } from '@/features/lectures/hooks';
+import { ItemPreviewModal } from '@/features/lectures/components/items/item-preview-modal';
 
 const PREVIEW_EXTENSIONS = [
   StarterKit,
@@ -54,42 +55,219 @@ function TiptapPreview({ doc }) {
   }
 }
 
+function QuizSetPreview({ parsed }) {
+  // Normalise to blocks (handles new { blocks } and old { quizzes } formats)
+  let blocks = [];
+  if (Array.isArray(parsed?.blocks)) {
+    blocks = parsed.blocks;
+  } else if (Array.isArray(parsed?.quizzes)) {
+    if (parsed.introduction) blocks.push({ id: 'intro', type: 'text', content: parsed.introduction });
+    for (const q of parsed.quizzes) blocks.push({ ...q, type: 'quiz' });
+  } else if (parsed?.question !== undefined) {
+    blocks = [{ ...parsed, type: 'quiz' }];
+  }
+
+  if (blocks.length === 0) return <p className='text-sm text-muted-foreground italic'>No content</p>;
+
+  let quizN = 0;
+  return (
+    <div className='space-y-4'>
+      {blocks.map((block, i) => {
+        if (block.type === 'text') {
+          return (
+            <div key={block.id ?? i} className='rounded-lg bg-muted/30 p-3'>
+              <p className='text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2'>Text Block</p>
+              <TiptapPreview doc={block.content} />
+            </div>
+          );
+        }
+        quizN++;
+        const isMC = block.quizType === 'MULTIPLE_CHOICE';
+        return (
+          <div key={block.id ?? i} className='rounded-lg border p-4 space-y-2'>
+            <div className='flex items-center gap-2'>
+              <span className='text-xs font-black uppercase tracking-widest text-muted-foreground'>Problem {quizN}</span>
+              <span className='text-[10px] bg-muted px-2 py-0.5 rounded font-mono'>{block.quizType}</span>
+              {(block.points ?? 0) > 0 && (
+                <span className='text-[10px] text-violet-500 font-bold'>{block.points} XP</span>
+              )}
+            </div>
+            <p className='text-sm font-medium'>{block.question || <em className='text-muted-foreground'>No question</em>}</p>
+            {block.graph?.fn1 && (
+              <p className='text-xs font-mono text-muted-foreground'>📈 Graph: {block.graph.fn1}{block.graph.fn2 ? `, ${block.graph.fn2}` : ''}</p>
+            )}
+            {isMC && (
+              <ul className='text-xs space-y-0.5 pl-2'>
+                {(block.options ?? []).map((o) => (
+                  <li key={o.id} className={o.isCorrect ? 'text-emerald-600 font-bold' : 'text-muted-foreground'}>
+                    {o.id.toUpperCase()}. {o.text || '—'} {o.isCorrect ? '✓' : ''}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!isMC && block.correctAnswer && (
+              <p className='text-xs text-emerald-600 font-mono'>Answer: {block.correctAnswer}</p>
+            )}
+            {block.explanation && (
+              <p className='text-xs text-muted-foreground italic'>Explanation: {block.explanation}</p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ProjectPreview({ parsed }) {
+  const isEditor = parsed.submissionType !== 'REPO';
+  return (
+    <div className='space-y-5'>
+      <div className='flex items-center gap-2'>
+        <span className='text-xs font-black uppercase tracking-widest text-muted-foreground'>Submission Type</span>
+        <span className='text-xs bg-muted px-2 py-0.5 rounded font-mono font-bold'>
+          {parsed.submissionType ?? 'EDITOR'}
+        </span>
+      </div>
+
+      {parsed.description && (
+        <div>
+          <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Description</p>
+          <TiptapPreview doc={parsed.description} />
+        </div>
+      )}
+
+      {Array.isArray(parsed.requirements) && parsed.requirements.filter(Boolean).length > 0 && (
+        <div>
+          <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Requirements</p>
+          <ul className='space-y-1'>
+            {parsed.requirements.filter(Boolean).map((req, i) => (
+              <li key={i} className='flex items-start gap-2 text-sm'>
+                <span className='text-muted-foreground font-mono'>{i + 1}.</span>
+                {req}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {isEditor && parsed.language && (
+        <div>
+          <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Language</p>
+          <span className='text-sm font-mono bg-muted px-2 py-0.5 rounded'>{parsed.language}</span>
+        </div>
+      )}
+
+      {isEditor && Array.isArray(parsed.files) && parsed.files.length > 0 && (
+        <div>
+          <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>
+            Starter Files ({parsed.files.length})
+          </p>
+          <div className='space-y-3'>
+            {parsed.files.map((f, i) => (
+              <div key={f.id ?? i}>
+                <p className='text-xs font-mono text-muted-foreground mb-1'>{f.name}</p>
+                {f.content && (
+                  <pre className='bg-muted rounded-lg p-3 text-sm font-mono whitespace-pre-wrap'>{f.content}</pre>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!isEditor && parsed.fields && (
+        <div>
+          <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Submission Fields</p>
+          <ul className='space-y-1 text-sm'>
+            {parsed.fields.repoRequired && <li className='text-muted-foreground'>✓ GitHub Repository URL (required)</li>}
+            {parsed.fields.demoRequired && <li className='text-muted-foreground'>✓ Live Demo URL (required)</li>}
+            {parsed.fields.snippetRequired && <li className='text-muted-foreground'>✓ Code Snippet (required)</li>}
+            {parsed.fields.noteLabel && <li className='text-muted-foreground'>✓ Note: "{parsed.fields.noteLabel}"</li>}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ContentPreview({ content, itemType }) {
   const parsed = parseContent(content);
   if (!parsed) {
     return <p className='text-sm text-muted-foreground italic'>No content</p>;
   }
 
-  // CODING_SET: wrapper format
+  // QUIZ_SET / TEST_BLOCK — same blocks structure
+  if (itemType === 'QUIZ_SET' || itemType === 'TEST_BLOCK') {
+    return <QuizSetPreview parsed={parsed} />;
+  }
+
+  // PROJECT
+  if (itemType === 'PROJECT') {
+    return <ProjectPreview parsed={parsed} />;
+  }
+
+  // CODING_SET: multi-problem format { problems[] } or legacy single-problem
   if (itemType === 'CODING_SET') {
+    const problems = Array.isArray(parsed.problems)
+      ? parsed.problems
+      : [{ ...parsed, files: parsed.fileName ? [{ name: parsed.fileName, content: parsed.starterCode ?? '' }] : [] }];
+
     return (
       <div className='space-y-6'>
-        <div>
-          <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Description</p>
-          <TiptapPreview doc={parsed.description} />
-        </div>
-        <div className='grid grid-cols-2 gap-4'>
-          <div>
-            <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1'>Language</p>
-            <p className='text-sm font-mono'>{parsed.language ?? '—'}</p>
-          </div>
-          <div>
-            <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1'>File Name</p>
-            <p className='text-sm font-mono'>{parsed.fileName ?? '—'}</p>
-          </div>
-        </div>
-        {parsed.starterCode && (
-          <div>
-            <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Starter Code</p>
-            <pre className='bg-muted rounded-lg p-3 text-sm font-mono whitespace-pre-wrap'>{parsed.starterCode}</pre>
-          </div>
-        )}
-        {parsed.expectedOutput && (
-          <div>
-            <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Expected Output</p>
-            <pre className='bg-muted rounded-lg p-3 text-sm font-mono whitespace-pre-wrap'>{parsed.expectedOutput}</pre>
-          </div>
-        )}
+        {problems.map((problem, idx) => {
+          const files = Array.isArray(problem.files) && problem.files.length > 0
+            ? problem.files
+            : problem.fileName ? [{ name: problem.fileName, content: problem.starterCode ?? '' }] : [];
+
+          return (
+            <div key={problem.id ?? idx} className='rounded-xl border p-5 space-y-4'>
+              <div className='flex items-center gap-3'>
+                <span className='text-[10px] font-black uppercase tracking-widest text-muted-foreground'>
+                  Problem {idx + 1}
+                </span>
+                {problem.title && <span className='text-sm font-medium'>{problem.title}</span>}
+                {problem.language && (
+                  <span className='text-[10px] bg-muted px-2 py-0.5 rounded font-mono'>{problem.language}</span>
+                )}
+                {(problem.points ?? 0) > 0 && (
+                  <span className='text-[10px] text-violet-500 font-bold'>{problem.points} XP</span>
+                )}
+              </div>
+
+              {problem.description && (
+                <div>
+                  <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Description</p>
+                  <TiptapPreview doc={problem.description} />
+                </div>
+              )}
+
+              {files.length > 0 && (
+                <div>
+                  <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>
+                    Files ({files.length})
+                  </p>
+                  <div className='space-y-3'>
+                    {files.map((f, fi) => (
+                      <div key={f.id ?? fi}>
+                        <p className='text-xs font-mono text-muted-foreground mb-1'>{f.name}</p>
+                        {f.content && (
+                          <pre className='bg-muted rounded-lg p-3 text-sm font-mono whitespace-pre-wrap'>{f.content}</pre>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {problem.expectedOutput && (
+                <div>
+                  <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Expected Output</p>
+                  <pre className='bg-muted rounded-lg p-3 text-sm font-mono whitespace-pre-wrap'>{problem.expectedOutput}</pre>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -117,6 +295,7 @@ export default function LectureItemDetailPage({ params }) {
             <Button variant='outline' size='sm' onClick={() => router.push(lecturePath)}>
               Back
             </Button>
+            <ItemPreviewModal item={item} isLoading={isLoading} />
             <Button
               size='sm'
               onClick={() =>

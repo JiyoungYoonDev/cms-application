@@ -24,6 +24,13 @@ export const createLecture = async (sectionId, payload) => {
   });
 };
 
+export const reorderLectures = async (sectionId, items) => {
+  return apiFetch(lectureRoutes.reorder(sectionId), {
+    method: 'PATCH',
+    body: items,
+  });
+};
+
 export const updateLecture = async (sectionId, lectureId, payload) => {
   return apiFetch(lectureRoutes.update(sectionId, lectureId), {
     method: 'PUT',

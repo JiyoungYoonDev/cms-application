@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
+import 'katex/dist/katex.min.css';
 import { QueryProvider } from '@/providers/query-provider';
 import { AuthProvider } from '@/contexts/auth-context';
 import { ConditionalLayout } from '@/components/conditional-layout';

@@ -1,9 +1,10 @@
 import { DataTable } from '@/components/common/data-display/table/data-table';
 import { getSectionsColumns } from '@/constants/table/columns/section-columns';
 import { SECTIONS_TEXTS } from '@/features/sections/constants/sections-text-data';
+import { useReorderSections } from '@/features/sections/hooks/use-section-mutation';
 import { useCourseSectionTableStore } from '@/stores/table-store';
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export default function CourseSectionContainer({
   courseId,
@@ -12,6 +13,24 @@ export default function CourseSectionContainer({
 }) {
   const router = useRouter();
   const tableState = useCourseSectionTableStore();
+  const [localSections, setLocalSections] = useState(null);
+  const { mutate: reorder } = useReorderSections();
+
+  const displaySections = localSections ?? sections;
+
+  const handleMoveSection = useCallback((fromIdx, toIdx) => {
+    const arr = [...displaySections];
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    const reordered = arr.map((s, i) => ({ ...s, sortOrder: i + 1 }));
+    setLocalSections(reordered);
+    reorder({
+      courseId,
+      items: reordered.map((s) => ({ id: s.id, sortOrder: s.sortOrder })),
+    }, {
+      onSuccess: () => setLocalSections(null),
+    });
+  }, [displaySections, courseId, reorder]);
 
   const handleManageSection = useCallback(
     (row) => {
@@ -39,14 +58,16 @@ export default function CourseSectionContainer({
         onManage: handleManageSection,
         onEdit: handleEditSection,
         onDelete: handleDeleteSection,
+        onMoveUp: (_, idx) => idx > 0 && handleMoveSection(idx, idx - 1),
+        onMoveDown: (_, idx) => idx < displaySections.length - 1 && handleMoveSection(idx, idx + 1),
       }),
-    [handleManageSection, handleEditSection, handleDeleteSection],
+    [handleManageSection, handleEditSection, handleDeleteSection, handleMoveSection, displaySections.length],
   );
 
   return (
     <div className='space-y-4'>
       <DataTable
-        data={sections}
+        data={displaySections}
         isLoading={isLoading}
         texts={SECTIONS_TEXTS.pages.sectionsTable}
         columns={sectionsColumns}

@@ -33,6 +33,13 @@ export const deleteLectureItem = async (itemId) => {
   });
 };
 
+export const updateLectureItemReviewStatus = async (itemId, reviewStatus) => {
+  return apiFetch(lectureItemRoutes.updateReviewStatus(itemId), {
+    method: 'PATCH',
+    body: { reviewStatus },
+  });
+};
+
 export const reorderLectureItems = async (lectureId, itemIds) => {
   return apiFetch(lectureItemRoutes.reorder(lectureId), {
     method: 'PATCH',

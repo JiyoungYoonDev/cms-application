@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -10,6 +11,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarGroupLabel,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
@@ -19,17 +23,33 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   ChevronDown,
+  ChevronRight,
   LayoutDashboard,
   FolderKanban,
   Users2,
   LogOut,
   Building2,
+  FolderOpen,
+  FileEdit,
+  Eye,
+  Clock,
+  AlertCircle,
+  UsersRound,
+  Crown,
 } from 'lucide-react';
+import Link from 'next/link';
 import { ThemeToggle } from '../common/tiptap/simple/theme-toggle';
 import { useAuth } from '@/contexts/auth-context';
 
+const CONTENT_ITEMS = [
+  { title: 'Drafts',      href: '/admin/content/drafts',     icon: FileEdit },
+  { title: 'In Review',   href: '/admin/content/in-review',  icon: Clock    },
+  { title: 'Published',   href: '/admin/content/published',   icon: Eye      },
+];
+
 export function AppSidebar() {
   const { user, logout } = useAuth();
+  const [contentOpen, setContentOpen] = useState(false);
 
   return (
     <Sidebar side='left' className=''>
@@ -57,12 +77,8 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent className='w-[--radix-popper-anchor-width] animate-in fade-in-0 zoom-in-95'>
-                <DropdownMenuItem className='cursor-pointer'>
-                  Users
-                </DropdownMenuItem>
-                <DropdownMenuItem className='cursor-pointer'>
-                  Setting
-                </DropdownMenuItem>
+                <DropdownMenuItem className='cursor-pointer'>Users</DropdownMenuItem>
+                <DropdownMenuItem className='cursor-pointer'>Setting</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
@@ -75,33 +91,98 @@ export function AppSidebar() {
             General
           </SidebarGroupLabel>
           <SidebarMenu className='mt-2 gap-1'>
-            {[
-              {
-                title: 'Dashboard',
-                icon: LayoutDashboard,
-                href: '/admin/courses',
-              },
-              { title: 'Projects', icon: FolderKanban, href: '/projects' },
-              { title: 'Team', icon: Users2, href: '/team' },
-            ].map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  className='hover:bg-admin-light transition-colors group'
-                >
-                  <a
-                    href={item.href}
-                    className='flex items-center gap-3 px-3 py-2 rounded-md'
-                  >
-                    <item.icon
-                      size={18}
-                      className='group-hover:text-admin-dark transition-colors'
-                    />
-                    <span className='font-medium'>{item.title}</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+
+            {/* Dashboard */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className='hover:bg-admin-light transition-colors group'>
+                <Link href='/admin/dashboard' className='flex items-center gap-3 px-3 py-2 rounded-md'>
+                  <LayoutDashboard size={18} className='group-hover:text-admin-dark transition-colors' />
+                  <span className='font-medium'>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Project */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className='hover:bg-admin-light transition-colors group'>
+                <Link href='/admin/courses' className='flex items-center gap-3 px-3 py-2 rounded-md'>
+                  <FolderKanban size={18} className='group-hover:text-admin-dark transition-colors' />
+                  <span className='font-medium'>Project</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Content Manager (collapsible) */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => setContentOpen((v) => !v)}
+                className='hover:bg-admin-light transition-colors group w-full'
+              >
+                <div className='flex items-center gap-3 px-3 py-2 rounded-md w-full'>
+                  <FolderOpen size={18} className='group-hover:text-admin-dark transition-colors shrink-0' />
+                  <span className='font-medium flex-1'>Content Manager</span>
+                  <ChevronRight
+                    size={14}
+                    className={`text-admin-dark transition-transform ${contentOpen ? 'rotate-90' : ''}`}
+                  />
+                </div>
+              </SidebarMenuButton>
+              {contentOpen && (
+                <SidebarMenuSub>
+                  {CONTENT_ITEMS.map((sub) => (
+                    <SidebarMenuSubItem key={sub.href}>
+                      <SidebarMenuSubButton asChild>
+                        <Link href={sub.href} className='flex items-center gap-2'>
+                          <sub.icon size={14} />
+                          {sub.title}
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                </SidebarMenuSub>
+              )}
+            </SidebarMenuItem>
+
+            {/* Users */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className='hover:bg-admin-light transition-colors group'>
+                <Link href='/admin/users' className='flex items-center gap-3 px-3 py-2 rounded-md'>
+                  <UsersRound size={18} className='group-hover:text-admin-dark transition-colors' />
+                  <span className='font-medium'>Users</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Subscriptions */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className='hover:bg-admin-light transition-colors group'>
+                <Link href='/admin/subscriptions' className='flex items-center gap-3 px-3 py-2 rounded-md'>
+                  <Crown size={18} className='group-hover:text-admin-dark transition-colors' />
+                  <span className='font-medium'>Subscriptions</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Issue Tracker */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className='hover:bg-admin-light transition-colors group'>
+                <Link href='/admin/issues' className='flex items-center gap-3 px-3 py-2 rounded-md'>
+                  <AlertCircle size={18} className='group-hover:text-admin-dark transition-colors' />
+                  <span className='font-medium'>Issue Tracker</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Team */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className='hover:bg-admin-light transition-colors group'>
+                <Link href='/team' className='flex items-center gap-3 px-3 py-2 rounded-md'>
+                  <Users2 size={18} className='group-hover:text-admin-dark transition-colors' />
+                  <span className='font-medium'>Team</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

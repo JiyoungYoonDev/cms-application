@@ -15,6 +15,7 @@ import {
 import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { CodingSetFields } from './coding-set-fields';
 import { QuizSetFields } from './quiz-set-fields';
+import { ProjectFields } from './project-fields';
 import { Hash, Type, AlignLeft, GripVertical } from 'lucide-react';
 import {
   DndContext,
@@ -44,7 +45,7 @@ const ITEM_TYPES = [
   'CODE_BLOCK',
   'QUIZ_SET',
   'CODING_SET',
-  'PROJECT_TASK',
+  'PROJECT',
   'CHECKPOINT',
   'TEST_BLOCK',
 ];
@@ -135,7 +136,7 @@ function ItemForm({ initial = EMPTY_FORM, onSave, onCancel, isPending }) {
               />
             ),
           },
-          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' ? [{
+          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'TEST_BLOCK' && values.itemType !== 'PROJECT' ? [{
             key: 'content',
             label: (
               <span className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40'>
@@ -160,8 +161,14 @@ function ItemForm({ initial = EMPTY_FORM, onSave, onCancel, isPending }) {
           onChange={(val) => handleChange('content', val)}
         />
       )}
-      {values.itemType === 'QUIZ_SET' && (
+      {(values.itemType === 'QUIZ_SET' || values.itemType === 'TEST_BLOCK') && (
         <QuizSetFields
+          value={values.content}
+          onChange={(val) => handleChange('content', val)}
+        />
+      )}
+      {values.itemType === 'PROJECT' && (
+        <ProjectFields
           value={values.content}
           onChange={(val) => handleChange('content', val)}
         />

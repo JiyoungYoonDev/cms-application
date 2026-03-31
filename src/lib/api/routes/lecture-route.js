@@ -8,4 +8,5 @@ export const lectureRoutes = {
     create: (sectionId) => `${SECTIONS}/${sectionId}${LECTURES}`,
     update: (sectionId, lectureId) => `${SECTIONS}/${sectionId}${LECTURES}/${lectureId}`,
     delete: (sectionId, lectureId) => `${SECTIONS}/${sectionId}${LECTURES}/${lectureId}`,
+    reorder: (sectionId) => `${SECTIONS}/${sectionId}${LECTURES}/reorder`,
 }

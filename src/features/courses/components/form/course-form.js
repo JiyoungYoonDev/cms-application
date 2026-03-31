@@ -24,7 +24,7 @@ export default function CourseForm({
   const [sections, setSections] = useState([]);
   const [editorContent, setEditorContent] = useState(undefined);
   const [isDirty, setIsDirty] = useState(false);
-  const initializedRef = useRef(false);
+  const isInitializingRef = useRef(false);
 
   const updateCourse = useUpdateCourse();
   const createCourse = useCreateCourse();
@@ -35,6 +35,8 @@ export default function CourseForm({
     if (mode === 'edit' && initialCourse) {
       const course = initialCourse?.data ?? initialCourse;
 
+      isInitializingRef.current = true;
+
       setFormData({
         title: course.title ?? '',
         description: course.description ?? '',
@@ -42,6 +44,7 @@ export default function CourseForm({
         categoryId: course.categoryId ?? null,
         hours: course.hours ?? 0,
         projects_count: course.projectsCount ?? 0,
+        imageUrl: course.imageUrl ?? '',
         status: course.status ?? '',
       });
 
@@ -65,16 +68,25 @@ export default function CourseForm({
       } else {
         setEditorContent(undefined);
       }
-      setTimeout(() => { initializedRef.current = true; }, 0);
-    } else if (mode === 'create') {
-      initializedRef.current = true;
+
+      requestAnimationFrame(() => { isInitializingRef.current = false; });
     }
   }, [mode, initialCourse]);
 
-  // Mark dirty whenever form changes after initialization
-  useEffect(() => {
-    if (initializedRef.current) setIsDirty(true);
-  }, [formData, sections, editorContent]);
+  const handleFormDataChange = (value) => {
+    setFormData(value);
+    if (!isInitializingRef.current) setIsDirty(true);
+  };
+
+  const handleSectionsChange = (value) => {
+    setSections(value);
+    if (!isInitializingRef.current) setIsDirty(true);
+  };
+
+  const handleEditorContentChange = (value) => {
+    setEditorContent(value);
+    if (!isInitializingRef.current) setIsDirty(true);
+  };
 
   const handleSubmit = async (status) => {
     if (!formData.difficulty) {
@@ -120,17 +132,17 @@ export default function CourseForm({
         <div className='space-y-12'>
           <CourseBasicInfoFields
             formData={formData}
-            setFormData={setFormData}
+            setFormData={handleFormDataChange}
           />
 
           <CourseEditorFields
             editorContent={editorContent}
-            setEditorContent={setEditorContent}
+            setEditorContent={handleEditorContentChange}
           />
 
           <CourseSectionFields
             sections={sections}
-            setSections={setSections}
+            setSections={handleSectionsChange}
             title='03. Course Sections'
             description='Manage detailed course sections and assessment structures.'
           />

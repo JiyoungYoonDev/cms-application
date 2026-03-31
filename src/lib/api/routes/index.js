@@ -1,4 +1,5 @@
 export { courseRoutes } from './courses-route'
+export { enrollmentRoutes } from './enrollment-route'
 export { sectionRoutes } from './section-route'
 export { lectureRoutes } from './lecture-route'
 export { lectureItemRoutes } from './lecture-item-route'

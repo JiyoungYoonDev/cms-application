@@ -8,4 +8,5 @@ export const lectureItemRoutes = {
   update: (itemId) => `${LECTURE_ITEMS_BASE}/${itemId}`,
   delete: (itemId) => `${LECTURE_ITEMS_BASE}/${itemId}`,
   reorder: (lectureId) => `${LECTURES_BASE}/${lectureId}/items/reorder`,
+  updateReviewStatus: (itemId) => `${LECTURE_ITEMS_BASE}/${itemId}/review-status`,
 };

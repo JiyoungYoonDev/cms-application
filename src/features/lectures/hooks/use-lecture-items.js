@@ -7,6 +7,7 @@ import {
   getLectureItems,
   reorderLectureItems,
   updateLectureItem,
+  updateLectureItemReviewStatus,
 } from '../services/lecture-item-service';
 
 export function useLectureItemById(itemId) {
@@ -14,7 +15,6 @@ export function useLectureItemById(itemId) {
     queryKey: queryKeys.lectureItems.detail(null, itemId),
     queryFn: () => getLectureItemById(itemId),
     enabled: !!itemId,
-    staleTime: 0,
   });
 }
 
@@ -23,7 +23,6 @@ export function useLectureItems(lectureId) {
     queryKey: queryKeys.lectureItems.list(lectureId),
     queryFn: () => getLectureItems(lectureId),
     enabled: !!lectureId,
-    staleTime: 0,
   });
 }
 
@@ -62,6 +61,20 @@ export function useDeleteLectureItem(options = {}) {
   return useMutation({
     mutationFn: ({ itemId }) => deleteLectureItem(itemId),
     onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.lectureItems.lists() });
+      options.onSuccess?.(data, variables, context);
+    },
+    ...options,
+  });
+}
+
+export function useUpdateLectureItemReviewStatus(options = {}) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, reviewStatus }) => updateLectureItemReviewStatus(itemId, reviewStatus),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.lectureItems.detail(null, variables.itemId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.lectureItems.lists() });
       options.onSuccess?.(data, variables, context);
     },

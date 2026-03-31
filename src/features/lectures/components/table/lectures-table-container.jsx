@@ -3,15 +3,33 @@
 import { DataTable } from '@/components/common/data-display/table/data-table';
 import { getLectureColumns } from '@/constants/table/columns/lecture-columns';
 import { LECTURES_TEXTS } from '@/features/lectures/constants/lectures-text-data';
+import { useReorderLectures } from '@/features/lectures/hooks';
 import { useLectureTableStore } from '@/stores/table-store';
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export default function LecturesTableContainer({ sectionId, lectures, isLoading, baseUrl }) {
   const router = useRouter();
   const tableState = useLectureTableStore();
+  const [localLectures, setLocalLectures] = useState(null);
+  const { mutate: reorder } = useReorderLectures();
 
+  const displayLectures = localLectures ?? lectures;
   const resolvedBaseUrl = baseUrl ?? `/admin/sections/${sectionId}/lectures`;
+
+  const handleMoveLecture = useCallback((fromIdx, toIdx) => {
+    const arr = [...displayLectures];
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    const reordered = arr.map((l, i) => ({ ...l, sortOrder: i + 1 }));
+    setLocalLectures(reordered);
+    reorder({
+      sectionId,
+      items: reordered.map((l) => ({ id: l.id, sortOrder: l.sortOrder })),
+    }, {
+      onSuccess: () => setLocalLectures(null),
+    });
+  }, [displayLectures, sectionId, reorder]);
 
   const handleEdit = useCallback(
     (lecture) => {
@@ -38,13 +56,15 @@ export default function LecturesTableContainer({ sectionId, lectures, isLoading,
       getLectureColumns({
         onEdit: handleEdit,
         onDelete: handleDelete,
+        onMoveUp: (_, idx) => idx > 0 && handleMoveLecture(idx, idx - 1),
+        onMoveDown: (_, idx) => idx < displayLectures.length - 1 && handleMoveLecture(idx, idx + 1),
       }),
-    [handleEdit, handleDelete],
+    [handleEdit, handleDelete, handleMoveLecture, displayLectures.length],
   );
 
   return (
     <DataTable
-      data={lectures}
+      data={displayLectures}
       isLoading={isLoading}
       texts={LECTURES_TEXTS.pages.lecturesTable}
       columns={columns}

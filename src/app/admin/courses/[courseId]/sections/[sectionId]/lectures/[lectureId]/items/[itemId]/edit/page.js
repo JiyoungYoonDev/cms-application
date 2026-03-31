@@ -15,9 +15,10 @@ import {
 import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { CodingSetFields } from '@/features/lectures/components/items/coding-set-fields';
 import { QuizSetFields } from '@/features/lectures/components/items/quiz-set-fields';
+import { ProjectFields } from '@/features/lectures/components/items/project-fields';
 import { Header } from '@/components/common/layout/page-header';
 import { Hash, Type, AlignLeft } from 'lucide-react';
-import { useLectureItemById, useUpdateLectureItem } from '@/features/lectures/hooks';
+import { useLectureItemById, useUpdateLectureItem, useUpdateLectureItemReviewStatus } from '@/features/lectures/hooks';
 
 const ITEM_TYPES = [
   'RICH_TEXT',
@@ -120,7 +121,7 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
               />
             ),
           },
-          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' ? [{
+          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'PROJECT' && values.itemType !== 'PROJECT_TASK' ? [{
             key: 'content',
             label: (
               <span className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40'>
@@ -151,6 +152,12 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
           onChange={(val) => handleChange('content', val)}
         />
       )}
+      {(values.itemType === 'PROJECT' || values.itemType === 'PROJECT_TASK') && (
+        <ProjectFields
+          value={values.content}
+          onChange={(val) => handleChange('content', val)}
+        />
+      )}
       <div className='flex gap-2 justify-end'>
         <Button type='button' variant='outline' size='sm' onClick={onCancel}>
           Cancel
@@ -163,12 +170,19 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
   );
 }
 
+const REVIEW_STATUSES = [
+  { value: 'DRAFT', label: 'Draft', color: 'text-muted-foreground border-border' },
+  { value: 'IN_REVIEW', label: 'In Review', color: 'text-amber-500 border-amber-500/50 bg-amber-500/5' },
+  { value: 'PUBLISHED', label: 'Published', color: 'text-emerald-500 border-emerald-500/50 bg-emerald-500/5' },
+];
+
 export default function LectureItemEditPage({ params }) {
   const router = useRouter();
   const { courseId, sectionId, lectureId, itemId } = use(params);
 
   const { data, isLoading } = useLectureItemById(itemId);
   const { mutate: updateItem, isPending } = useUpdateLectureItem();
+  const { mutate: updateStatus, isPending: isStatusPending } = useUpdateLectureItemReviewStatus();
 
   const item = data?.data ?? data;
   const detailPath = `/admin/courses/${courseId}/sections/${sectionId}/lectures/${lectureId}/items/${itemId}`;
@@ -180,6 +194,10 @@ export default function LectureItemEditPage({ params }) {
     );
   };
 
+  const handleStatusChange = (reviewStatus) => {
+    updateStatus({ itemId, reviewStatus });
+  };
+
   if (isLoading) {
     return (
       <div className='max-w-4xl mx-auto py-8'>
@@ -188,15 +206,36 @@ export default function LectureItemEditPage({ params }) {
     );
   }
 
+  const currentStatus = item?.reviewStatus ?? 'DRAFT';
+
   return (
     <div className='max-w-4xl mx-auto space-y-8 py-8'>
       <Header
         title='Edit Item'
         description={item?.title ?? ''}
         actions={
-          <Button variant='outline' size='sm' onClick={() => router.push(detailPath)}>
-            Cancel
-          </Button>
+          <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-1 rounded-lg border border-border p-1'>
+              {REVIEW_STATUSES.map((s) => (
+                <button
+                  key={s.value}
+                  type='button'
+                  disabled={isStatusPending}
+                  onClick={() => handleStatusChange(s.value)}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold border transition-colors ${
+                    currentStatus === s.value
+                      ? s.color
+                      : 'text-muted-foreground border-transparent hover:text-foreground'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <Button variant='outline' size='sm' onClick={() => router.push(detailPath)}>
+              Cancel
+            </Button>
+          </div>
         }
       />
 

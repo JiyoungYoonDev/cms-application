@@ -4,7 +4,7 @@ export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 30 * 1000,
+        staleTime: Infinity,
         refetchOnWindowFocus: false,
         retry: 1,
       },
