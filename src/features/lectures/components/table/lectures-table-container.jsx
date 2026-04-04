@@ -3,7 +3,7 @@
 import { DataTable } from '@/components/common/data-display/table/data-table';
 import { getLectureColumns } from '@/constants/table/columns/lecture-columns';
 import { LECTURES_TEXTS } from '@/features/lectures/constants/lectures-text-data';
-import { useReorderLectures } from '@/features/lectures/hooks';
+import { useDeleteLecture, useReorderLectures } from '@/features/lectures/hooks';
 import { useLectureTableStore } from '@/stores/table-store';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
@@ -13,6 +13,7 @@ export default function LecturesTableContainer({ sectionId, lectures, isLoading,
   const tableState = useLectureTableStore();
   const [localLectures, setLocalLectures] = useState(null);
   const { mutate: reorder } = useReorderLectures();
+  const { mutate: removeLecture } = useDeleteLecture();
 
   const displayLectures = localLectures ?? lectures;
   const resolvedBaseUrl = baseUrl ?? `/admin/sections/${sectionId}/lectures`;
@@ -40,8 +41,8 @@ export default function LecturesTableContainer({ sectionId, lectures, isLoading,
 
   const handleDelete = useCallback((lecture) => {
     if (!window.confirm(`Delete "${lecture.title}"?`)) return;
-    window.alert('Delete flow placeholder');
-  }, []);
+    removeLecture({ sectionId, lectureId: lecture.id });
+  }, [removeLecture, sectionId]);
 
   const handleRowClick = useCallback(
     (row) => {

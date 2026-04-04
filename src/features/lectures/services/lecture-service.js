@@ -37,3 +37,9 @@ export const updateLecture = async (sectionId, lectureId, payload) => {
     body: payload,
   });
 };
+
+export const deleteLecture = async (sectionId, lectureId) => {
+  return apiFetch(lectureRoutes.delete(sectionId, lectureId), {
+    method: 'DELETE',
+  });
+};

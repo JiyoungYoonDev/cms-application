@@ -17,6 +17,12 @@ export const reorderSections = async (courseId, items) => {
   });
 };
 
+export const deleteSection = async (courseId, sectionId) => {
+  return apiFetch(sectionRoutes.remove(courseId, sectionId), {
+    method: 'DELETE',
+  });
+};
+
 export const createSection = async ({ courseId, payload }) => {
   const result = await apiFetch(sectionRoutes.create(courseId), {
     method: 'POST',

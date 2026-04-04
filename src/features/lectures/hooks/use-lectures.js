@@ -1,6 +1,6 @@
 import { queryKeys } from '@/lib/api/query-keys';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createLecture, getLectureById, getLectures, updateLecture, reorderLectures } from '../services/lecture-service';
+import { createLecture, deleteLecture, getLectureById, getLectures, updateLecture, reorderLectures } from '../services/lecture-service';
 
 export function useLectureById(sectionId, lectureId) {
   return useQuery({
@@ -41,6 +41,21 @@ export function useReorderLectures(options = {}) {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.lectures.list(variables.sectionId) });
       options.onSuccess?.();
+    },
+    ...options,
+  });
+}
+
+export function useDeleteLecture(options = {}) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ sectionId, lectureId }) => deleteLecture(sectionId, lectureId),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.lectures.lists(),
+      });
+      options.onSuccess?.(data, variables, context);
     },
     ...options,
   });
