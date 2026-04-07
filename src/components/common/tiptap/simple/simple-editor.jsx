@@ -26,6 +26,8 @@ import {
 // --- Tiptap Node ---
 import { ImageUploadNode } from '@/components/common/tiptap/tiptap-node/image-upload-node/image-upload-node-extension';
 import { HorizontalRule } from '@/components/common/tiptap/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension';
+import { MathBlock } from '@/components/common/tiptap/tiptap-node/math-node/math-node-extension';
+import { GraphBlock } from '@/components/common/tiptap/tiptap-node/graph-node/graph-node-extension';
 import '@/components/common/tiptap/tiptap-node/blockquote-node/blockquote-node.scss';
 import '@/components/common/tiptap/tiptap-node/code-block-node/code-block-node.scss';
 import '@/components/common/tiptap/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss';
@@ -53,6 +55,8 @@ import {
 import { MarkButton } from '@/components/common/tiptap/tiptap-ui/mark-button';
 import { TextAlignButton } from '@/components/common/tiptap/tiptap-ui/text-align-button';
 import { UndoRedoButton } from '@/components/common/tiptap/tiptap-ui/undo-redo-button';
+import { MathButton } from '@/components/common/tiptap/tiptap-ui/math-button';
+import { GraphButton } from '@/components/common/tiptap/tiptap-ui/graph-button';
 
 // --- Icons ---
 import { ArrowLeftIcon } from '@/components/common/tiptap/tiptap-icons/arrow-left-icon';
@@ -121,6 +125,11 @@ const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
       <ToolbarSeparator />
       <ToolbarGroup>
         <ImageUploadButton text='Add' />
+      </ToolbarGroup>
+      <ToolbarSeparator />
+      <ToolbarGroup>
+        <MathButton />
+        <GraphButton />
       </ToolbarGroup>
       <Spacer />
       {isMobile && <ToolbarSeparator />}
@@ -211,6 +220,8 @@ export function SimpleEditor({
         upload: handleImageUpload,
         onError: (error) => console.error('Upload failed:', error),
       }),
+      MathBlock,
+      GraphBlock,
     ],
   });
 
@@ -256,7 +267,7 @@ export function SimpleEditor({
 
   return (
     <div className='simple-editor-container'>
-      <div className='simple-editor-wrapper border rounded-lg'>
+      <div className={`simple-editor-wrapper border rounded-lg ${readOnly ? 'simple-editor-readonly' : ''}`}>
         <EditorContext.Provider value={{ editor }}>
           {!readOnly && (
             <Toolbar

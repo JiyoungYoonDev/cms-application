@@ -52,11 +52,12 @@ export default function CourseSectionForm({
           </label>
           <Input
             type='number'
-            value={sections.sub_courses}
+            value={sections.sub_courses || ''}
+            min={0}
             onChange={(e) =>
               setSections({
                 ...sections,
-                sub_courses: parseInt(e.target.value) || 0,
+                sub_courses: Math.max(0, parseInt(e.target.value) || 0),
               })
             }
             className='bg-slate-950 border-slate-800 text-slate-200'
@@ -69,9 +70,10 @@ export default function CourseSectionForm({
           </label>
           <Input
             type='number'
-            value={sections.hours}
+            value={sections.hours || ''}
+            min={0}
             onChange={(e) =>
-              setSections({ ...sections, hours: parseInt(e.target.value) || 0 })
+              setSections({ ...sections, hours: Math.max(0, parseInt(e.target.value) || 0) })
             }
             className='bg-slate-950 border-slate-800 text-slate-200'
           />
@@ -83,11 +85,12 @@ export default function CourseSectionForm({
           </label>
           <Input
             type='number'
-            value={sections.points}
+            value={sections.points || ''}
+            min={0}
             onChange={(e) =>
               setSections({
                 ...sections,
-                points: parseInt(e.target.value) || 0,
+                points: Math.max(0, parseInt(e.target.value) || 0),
               })
             }
             className='bg-slate-950 border-slate-800 text-slate-200'

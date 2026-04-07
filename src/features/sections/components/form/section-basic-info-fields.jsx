@@ -4,7 +4,7 @@ import { Header } from '@/components/common/layout/page-header';
 import { Fields } from '@/components/ui/form/Fields';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Clock, Hash, ArrowUpDown } from 'lucide-react';
+import { Clock, Hash } from 'lucide-react';
 
 export default function SectionBasicInfoFields({ formData, setFormData }) {
   return (
@@ -54,21 +54,7 @@ export default function SectionBasicInfoFields({ formData, setFormData }) {
           ]}
         />
 
-        <div className='grid grid-cols-3 gap-6 pt-4 border-t border-dashed'>
-          <div className='space-y-3'>
-            <label className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40 ml-1'>
-              <ArrowUpDown size={12} /> Sort Order
-            </label>
-            <Input
-              type='number'
-              placeholder='1'
-              className='h-12 border-input/60 font-mono'
-              value={formData.sortOrder}
-              onChange={(e) =>
-                setFormData({ ...formData, sortOrder: Number(e.target.value) })
-              }
-            />
-          </div>
+        <div className='grid grid-cols-2 gap-6 pt-4 border-t border-dashed'>
           <div className='space-y-3'>
             <label className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40 ml-1'>
               <Clock size={12} /> Hours
@@ -77,9 +63,10 @@ export default function SectionBasicInfoFields({ formData, setFormData }) {
               type='number'
               placeholder='0'
               className='h-12 border-input/60 font-mono'
-              value={formData.hours}
+              value={formData.hours || ''}
+              min={0}
               onChange={(e) =>
-                setFormData({ ...formData, hours: Number(e.target.value) })
+                setFormData({ ...formData, hours: Math.max(0, Number(e.target.value)) })
               }
             />
           </div>
@@ -91,9 +78,10 @@ export default function SectionBasicInfoFields({ formData, setFormData }) {
               type='number'
               placeholder='0'
               className='h-12 border-input/60 font-mono'
-              value={formData.points}
+              value={formData.points || ''}
+              min={0}
               onChange={(e) =>
-                setFormData({ ...formData, points: Number(e.target.value) })
+                setFormData({ ...formData, points: Math.max(0, Number(e.target.value)) })
               }
             />
           </div>

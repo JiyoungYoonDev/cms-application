@@ -18,7 +18,6 @@ export default function NewSectionPage({ params }) {
     description: '',
     hours: 0,
     points: 0,
-    sortOrder: 1,
   });
 
   const handleSave = () => {

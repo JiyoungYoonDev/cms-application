@@ -12,12 +12,15 @@ export default function SectionLecturesPage({ params }) {
   const { sectionId } = use(params);
   const { data, isLoading, error } = useLecture(sectionId);
 
-  console.log('LECTURES RAW', data, 'ERROR', error, 'isLoading', isLoading);
-  const lectures =
+  const rawLectures =
     data?.data?.content ??
     data?.data ??
     data?.content ??
     (Array.isArray(data) ? data : []);
+
+  const lectures = [...rawLectures].sort(
+    (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+  );
 
   const handleAddLecture = useCallback(() => {
     router.push(`/admin/sections/${sectionId}/lectures/new`);

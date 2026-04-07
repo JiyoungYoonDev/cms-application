@@ -9,14 +9,6 @@ export function SectionForm({ values, onChange }) {
         value={values.title}
         onChange={(event) => onChange({ ...values, title: event.target.value })}
       />
-      <Input
-        placeholder='Sort order'
-        type='number'
-        value={values.sortOrder}
-        onChange={(event) =>
-          onChange({ ...values, sortOrder: Number(event.target.value) })
-        }
-      />
       <Textarea
         className='md:col-span-2'
         placeholder='Section description'
@@ -28,17 +20,19 @@ export function SectionForm({ values, onChange }) {
       <Input
         placeholder='Hours'
         type='number'
-        value={values.hours}
+        value={values.hours || ''}
+        min={0}
         onChange={(event) =>
-          onChange({ ...values, hours: Number(event.target.value) })
+          onChange({ ...values, hours: Math.max(0, Number(event.target.value)) })
         }
       />
       <Input
         placeholder='Points'
         type='number'
-        value={values.points}
+        value={values.points || ''}
+        min={0}
         onChange={(event) =>
-          onChange({ ...values, points: Number(event.target.value) })
+          onChange({ ...values, points: Math.max(0, Number(event.target.value)) })
         }
       />
     </div>

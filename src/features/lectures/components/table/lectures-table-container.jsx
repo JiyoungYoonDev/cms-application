@@ -6,7 +6,7 @@ import { LECTURES_TEXTS } from '@/features/lectures/constants/lectures-text-data
 import { useDeleteLecture, useReorderLectures } from '@/features/lectures/hooks';
 import { useLectureTableStore } from '@/stores/table-store';
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export default function LecturesTableContainer({ sectionId, lectures, isLoading, baseUrl }) {
   const router = useRouter();
@@ -14,9 +14,37 @@ export default function LecturesTableContainer({ sectionId, lectures, isLoading,
   const [localLectures, setLocalLectures] = useState(null);
   const { mutate: reorder } = useReorderLectures();
   const { mutate: removeLecture } = useDeleteLecture();
+  const autoFixedRef = useRef(false);
+
+  // Auto-fix duplicate sort orders (e.g. all 1,1,1)
+  useEffect(() => {
+    if (!lectures || lectures.length < 2 || autoFixedRef.current) return;
+    const sortOrders = lectures.map((l) => l.sortOrder);
+    const hasDuplicates = new Set(sortOrders).size < sortOrders.length;
+    if (!hasDuplicates) return;
+
+    autoFixedRef.current = true;
+    const sorted = [...lectures].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+    const fixed = sorted.map((l, i) => ({ ...l, sortOrder: i + 1 }));
+    setLocalLectures(fixed);
+    reorder({
+      sectionId,
+      items: fixed.map((l) => ({ id: l.id, sortOrder: l.sortOrder })),
+    });
+  }, [lectures, sectionId, reorder]);
 
   const displayLectures = localLectures ?? lectures;
   const resolvedBaseUrl = baseUrl ?? `/admin/sections/${sectionId}/lectures`;
+
+  // Sync: clear local state when parent lectures update with matching sort orders
+  useEffect(() => {
+    if (!localLectures || !lectures || lectures.length === 0) return;
+    const parentOrders = lectures.map((l) => `${l.id}:${l.sortOrder}`).join(',');
+    const localOrders = localLectures.map((l) => `${l.id}:${l.sortOrder}`).join(',');
+    if (parentOrders === localOrders) {
+      setLocalLectures(null);
+    }
+  }, [lectures, localLectures]);
 
   const handleMoveLecture = useCallback((fromIdx, toIdx) => {
     const arr = [...displayLectures];
@@ -27,8 +55,6 @@ export default function LecturesTableContainer({ sectionId, lectures, isLoading,
     reorder({
       sectionId,
       items: reordered.map((l) => ({ id: l.id, sortOrder: l.sortOrder })),
-    }, {
-      onSuccess: () => setLocalLectures(null),
     });
   }, [displayLectures, sectionId, reorder]);
 

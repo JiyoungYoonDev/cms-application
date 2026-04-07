@@ -11,10 +11,39 @@ import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { Image } from '@tiptap/extension-image';
 import { TaskItem, TaskList } from '@tiptap/extension-list';
+import { Node } from '@tiptap/core';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/common/layout/page-header';
 import { useLectureItemById } from '@/features/lectures/hooks';
 import { ItemPreviewModal } from '@/features/lectures/components/items/item-preview-modal';
+import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
+
+// Lightweight stand-in nodes for generateHTML (no React view needed)
+const MathBlockPreview = Node.create({
+  name: 'mathBlock',
+  group: 'block',
+  atom: true,
+  addAttributes() { return { latex: { default: '' } }; },
+  renderHTML({ HTMLAttributes }) {
+    return ['div', { 'data-type': 'math-block', class: 'math-preview' }, HTMLAttributes.latex || ''];
+  },
+});
+const GraphBlockPreview = Node.create({
+  name: 'graphBlock',
+  group: 'block',
+  atom: true,
+  addAttributes() {
+    return {
+      expression: { default: '' },
+      xMin: { default: -10 }, xMax: { default: 10 },
+      yMin: { default: -10 }, yMax: { default: 10 },
+      width: { default: 600 }, height: { default: 400 },
+    };
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['div', { 'data-type': 'graph-block', class: 'graph-preview' }, `f(x) = ${HTMLAttributes.expression}`];
+  },
+});
 
 const PREVIEW_EXTENSIONS = [
   StarterKit,
@@ -25,13 +54,20 @@ const PREVIEW_EXTENSIONS = [
   Image,
   TaskList,
   TaskItem.configure({ nested: true }),
+  MathBlockPreview,
+  GraphBlockPreview,
 ];
 
 function parseContent(raw) {
   if (!raw) return null;
   if (typeof raw === 'object') return raw;
   try {
-    return JSON.parse(raw);
+    let parsed = JSON.parse(raw);
+    // Handle double-stringified JSON from legacy saves
+    if (typeof parsed === 'string') {
+      parsed = JSON.parse(parsed);
+    }
+    return typeof parsed === 'object' ? parsed : null;
   } catch {
     return null;
   }
@@ -50,7 +86,8 @@ function TiptapPreview({ doc }) {
         dangerouslySetInnerHTML={{ __html: safeHtml }}
       />
     );
-  } catch {
+  } catch (err) {
+    console.error('TiptapPreview render error:', err);
     return <p className='text-sm text-muted-foreground italic'>Unable to render content</p>;
   }
 }
@@ -272,8 +309,8 @@ function ContentPreview({ content, itemType }) {
     );
   }
 
-  // Default: bare Tiptap doc
-  return <TiptapPreview doc={parsed} />;
+  // Default: use full editor in read-only mode (supports math/graph nodes)
+  return <SimpleEditor initialData={parsed} readOnly />;
 }
 
 export default function LectureItemDetailPage({ params }) {

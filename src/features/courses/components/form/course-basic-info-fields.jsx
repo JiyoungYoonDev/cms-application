@@ -218,9 +218,10 @@ export default function CourseBasicInfoFields({ formData, setFormData }) {
               type='number'
               placeholder='40'
               className='h-12 border-input/60 font-mono'
-              value={formData.hours}
+              value={formData.hours || ''}
+              min={0}
               onChange={(e) =>
-                setFormData({ ...formData, hours: Number(e.target.value) })
+                setFormData({ ...formData, hours: Math.max(0, Number(e.target.value)) })
               }
             />
           </div>
@@ -232,11 +233,12 @@ export default function CourseBasicInfoFields({ formData, setFormData }) {
               type='number'
               placeholder='5'
               className='h-12 border-input/60 font-mono'
-              value={formData.projects_count}
+              value={formData.projects_count || ''}
+              min={0}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  projects_count: Number(e.target.value),
+                  projects_count: Math.max(0, Number(e.target.value)),
                 })
               }
             />

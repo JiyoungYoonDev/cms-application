@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { LectureEditorPanel } from '@/components/admin/cms/lecture-editor-panel';
 import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { Header } from '@/components/common/layout/page-header';
-import { useCreateLecture, useLectureById, useUpdateLecture } from '@/features/lectures/hooks';
+import {
+  useCreateLecture,
+  useLectureById,
+  useUpdateLecture,
+} from '@/features/lectures/hooks';
 
 const isNew = (id) => id === 'new';
 
@@ -20,7 +24,6 @@ export default function LectureEditorPage({ params }) {
     title: '',
     description: '',
     contentJson: { type: 'doc', content: [] },
-    sortOrder: 1,
     durationMinutes: 10,
     isPreview: false,
     isPublished: false,
@@ -36,11 +39,18 @@ export default function LectureEditorPage({ params }) {
   useEffect(() => {
     if (!lectureData) return;
     const d = lectureData?.data ?? lectureData;
+
+    let parsedContent = { type: 'doc', content: [] };
+    if (typeof d.contentJson === 'string') {
+      try { parsedContent = JSON.parse(d.contentJson); } catch { /* keep default */ }
+    } else if (d.contentJson) {
+      parsedContent = d.contentJson;
+    }
+
     setFormValues({
       title: d.title ?? '',
       description: d.description ?? '',
-      contentJson: d.contentJson ?? { type: 'doc', content: [] },
-      sortOrder: d.sortOrder ?? 1,
+      contentJson: parsedContent,
       durationMinutes: d.durationMinutes ?? 10,
       isPreview: d.isPreview ?? false,
       isPublished: d.isPublished ?? false,
@@ -73,8 +83,9 @@ export default function LectureEditorPage({ params }) {
     const payload = {
       title: formValues.title,
       description: formValues.description,
-      contentJson: formValues.contentJson,
-      sortOrder: formValues.sortOrder,
+      contentJson: typeof formValues.contentJson === 'string'
+        ? formValues.contentJson
+        : JSON.stringify(formValues.contentJson),
       durationMinutes: formValues.durationMinutes,
       isPreview: formValues.isPreview,
       isPublished: formValues.isPublished,
@@ -82,7 +93,7 @@ export default function LectureEditorPage({ params }) {
     };
 
     if (isNew(lectureId)) {
-      create({ sectionId, payload });
+      create({ sectionId, payload: { ...payload, sortOrder: 0 } });
     } else {
       update({ sectionId, lectureId, payload });
     }
@@ -112,11 +123,10 @@ export default function LectureEditorPage({ params }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!draftHydrated) return;
-    const payload = {
+    const draftPayload = {
       title: formValues.title,
       description: formValues.description,
       contentJson: formValues.contentJson,
-      sortOrder: formValues.sortOrder,
       durationMinutes: formValues.durationMinutes,
       isPreview: formValues.isPreview,
       isPublished: formValues.isPublished,
@@ -124,7 +134,7 @@ export default function LectureEditorPage({ params }) {
     };
     window.sessionStorage.setItem(
       `lecture-draft:${lectureId}`,
-      JSON.stringify(payload),
+      JSON.stringify(draftPayload),
     );
   }, [draftHydrated, formValues, lectureId]);
 

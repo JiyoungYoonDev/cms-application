@@ -17,7 +17,7 @@ import { CodingSetFields } from '@/features/lectures/components/items/coding-set
 import { QuizSetFields } from '@/features/lectures/components/items/quiz-set-fields';
 import { ProjectFields } from '@/features/lectures/components/items/project-fields';
 import { Header } from '@/components/common/layout/page-header';
-import { Hash, Type, AlignLeft } from 'lucide-react';
+import { Type, AlignLeft } from 'lucide-react';
 import { useLectureItemById, useUpdateLectureItem, useUpdateLectureItemReviewStatus } from '@/features/lectures/hooks';
 
 const ITEM_TYPES = [
@@ -102,23 +102,6 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
                   ))}
                 </SelectContent>
               </Select>
-            ),
-          },
-          {
-            key: 'sortOrder',
-            label: (
-              <span className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40'>
-                <Hash size={11} /> Sort Order
-              </span>
-            ),
-            child: (
-              <Input
-                type='number'
-                placeholder='e.g. 1'
-                value={values.sortOrder}
-                onChange={(e) => handleChange('sortOrder', Number(e.target.value))}
-                className='h-11 border-input/60 font-mono'
-              />
             ),
           },
           ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'PROJECT' && values.itemType !== 'PROJECT_TASK' ? [{
@@ -246,7 +229,6 @@ export default function LectureItemEditPage({ params }) {
             title: item.title ?? '',
             itemType: item.itemType ?? 'RICH_TEXT',
             content: parseContent(item.contentJson ?? item.content),
-            sortOrder: item.sortOrder ?? 1,
           }}
           onSave={handleSave}
           onCancel={() => router.push(detailPath)}

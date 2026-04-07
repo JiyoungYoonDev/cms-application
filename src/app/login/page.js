@@ -20,7 +20,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(email, password);
-      router.replace('/admin/courses');
+      window.location.href = '/admin/courses';
     } catch (err) {
       setError(err.message || '이메일 또는 비밀번호가 올바르지 않습니다.');
     } finally {

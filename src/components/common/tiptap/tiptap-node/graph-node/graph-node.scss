@@ -1,0 +1,176 @@
+.graph-node-wrapper {
+  margin: 1rem 0;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--border) / 0.5);
+  background: hsl(var(--card) / 0.5);
+  transition: border-color 0.15s;
+
+  &.graph-node-selected {
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+  }
+}
+
+.graph-node-editor {
+  padding: 1rem;
+}
+
+.graph-node-editor-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.4;
+  margin-bottom: 0.75rem;
+}
+
+.graph-node-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.5;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+    font-size: 0.875rem;
+
+    &:focus {
+      outline: none;
+      border-color: hsl(var(--primary) / 0.5);
+      box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+    }
+
+    &::placeholder {
+      opacity: 0.35;
+    }
+  }
+}
+
+.graph-node-symbols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+
+.graph-node-symbol-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.1s;
+
+  &:hover {
+    background: hsl(var(--primary) / 0.15);
+    border-color: hsl(var(--primary) / 0.4);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.graph-node-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.graph-node-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+}
+
+.graph-node-hint {
+  font-size: 11px;
+  opacity: 0.35;
+}
+
+.graph-node-btn-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.graph-node-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.graph-node-btn-confirm {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.graph-node-btn-delete {
+  background: transparent;
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.3);
+
+  &:hover {
+    background: hsl(var(--destructive) / 0.1);
+  }
+}
+
+.graph-node-render {
+  padding: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.graph-node-error {
+  color: hsl(var(--destructive));
+  font-size: 0.875rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.graph-node-edit-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid hsl(var(--border) / 0.3);
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 0.8rem;
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+  }
+}

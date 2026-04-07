@@ -98,6 +98,16 @@ body,
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+
+  &.simple-editor-readonly {
+    height: auto;
+    min-height: 200px;
+    max-height: none;
+
+    .simple-editor-content .tiptap.ProseMirror.simple-editor {
+      padding: 1.5rem;
+    }
+  }
 }
 
 .simple-editor-wrapper::-webkit-scrollbar {

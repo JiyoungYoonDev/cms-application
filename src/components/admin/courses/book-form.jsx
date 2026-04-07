@@ -161,9 +161,7 @@ export default function BookForm({ mode = 'create', bookId, initialBook }) {
   return (
     <div className='min-h-screen p-6 md:p-10 transition-colors'>
       <div className='max-w-7xl mx-auto'>
-
         <div className='grid grid-cols-1 lg:grid-cols-12 gap-12'>
-
           <aside className='lg:col-span-4 space-y-6'>
             <div className='border p-8 rounded-[32px] sticky top-10 bg-card shadow-sm'>
               <h3 className='text-xs font-black uppercase tracking-widest mb-10 border-b pb-4 opacity-50'>
@@ -258,11 +256,12 @@ export default function BookForm({ mode = 'create', bookId, initialBook }) {
                     <Input
                       type='number'
                       placeholder='40'
+                      min={0}
                       value={formData.hours}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          hours: Number(e.target.value),
+                          hours: Math.max(0, Number(e.target.value)),
                         })
                       }
                     />
@@ -274,11 +273,12 @@ export default function BookForm({ mode = 'create', bookId, initialBook }) {
                     <Input
                       type='number'
                       placeholder='5'
+                      min={0}
                       value={formData.projects_count}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          projects_count: Number(e.target.value),
+                          projects_count: Math.max(0, Number(e.target.value)),
                         })
                       }
                     />

@@ -8,15 +8,20 @@ export const courseColumns = [
       row.original.problem_title || row.original.title || 'Untitled',
   },
   {
-    accessorKey: 'course_category',
+    accessorKey: 'category',
     header: 'Category',
     cell: ({ row }) => {
+      const d = row.original;
       const rawCategory =
-        row.original.course_category ?? row.original.category ?? null;
+        d.category ?? d.course_category ?? d.courseCategory ?? null;
 
-      if (!rawCategory) return '—';
+      if (!rawCategory && !d.categoryName) return '—';
       if (typeof rawCategory === 'string') return rawCategory;
-      return rawCategory.category_name || rawCategory.categoryName || '—';
+      if (d.categoryName) return d.categoryName;
+      if (rawCategory && typeof rawCategory === 'object') {
+        return rawCategory.categoryName || rawCategory.category_name || rawCategory.name || '—';
+      }
+      return '—';
     },
   },
   {

@@ -51,7 +51,6 @@ export default function CourseSectionFields({
     setEditingId(section.id);
   };
 
-  console.log(sections);
   return (
     <section className={`space-y-6 ${className}`}>
       <div className='flex items-center justify-between ml-4 mr-2'>

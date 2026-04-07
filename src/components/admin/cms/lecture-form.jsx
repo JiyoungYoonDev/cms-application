@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Clock, AlignLeft, Hash, Type } from 'lucide-react';
+import { Clock, AlignLeft, Type } from 'lucide-react';
 
 const LECTURE_TYPES = ['TEXT', 'VIDEO', 'QUIZ', 'PROJECT', 'CODING'];
 
@@ -76,23 +76,6 @@ export function LectureForm({ values, onChange }) {
           ),
         },
         {
-          key: 'sortOrder',
-          label: (
-            <span className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40'>
-              <Hash size={11} /> Sort Order
-            </span>
-          ),
-          child: (
-            <Input
-              type='number'
-              placeholder='e.g. 1'
-              value={values.sortOrder}
-              onChange={(e) => onChange({ ...values, sortOrder: Number(e.target.value) })}
-              className='h-11 border-input/60 font-mono'
-            />
-          ),
-        },
-        {
           key: 'durationMinutes',
           label: (
             <span className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40'>
@@ -104,7 +87,8 @@ export function LectureForm({ values, onChange }) {
               type='number'
               placeholder='e.g. 15'
               value={values.durationMinutes}
-              onChange={(e) => onChange({ ...values, durationMinutes: Number(e.target.value) })}
+              min={0}
+              onChange={(e) => onChange({ ...values, durationMinutes: Math.max(0, Number(e.target.value)) })}
               className='h-11 border-input/60 font-mono'
             />
           ),

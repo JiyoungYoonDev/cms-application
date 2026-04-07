@@ -16,7 +16,7 @@ import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { CodingSetFields } from './coding-set-fields';
 import { QuizSetFields } from './quiz-set-fields';
 import { ProjectFields } from './project-fields';
-import { Hash, Type, AlignLeft, GripVertical } from 'lucide-react';
+import { Type, AlignLeft, GripVertical } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -54,7 +54,6 @@ const EMPTY_FORM = {
   title: '',
   itemType: 'RICH_TEXT',
   content: { type: 'doc', content: [] },
-  sortOrder: 0,
 };
 
 function ItemForm({ initial = EMPTY_FORM, onSave, onCancel, isPending }) {
@@ -117,23 +116,6 @@ function ItemForm({ initial = EMPTY_FORM, onSave, onCancel, isPending }) {
                   ))}
                 </SelectContent>
               </Select>
-            ),
-          },
-          {
-            key: 'sortOrder',
-            label: (
-              <span className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40'>
-                <Hash size={11} /> Sort Order
-              </span>
-            ),
-            child: (
-              <Input
-                type='number'
-                placeholder='e.g. 1'
-                value={values.sortOrder}
-                onChange={(e) => handleChange('sortOrder', Number(e.target.value))}
-                className='h-11 border-input/60 font-mono'
-              />
             ),
           },
           ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'TEST_BLOCK' && values.itemType !== 'PROJECT' ? [{

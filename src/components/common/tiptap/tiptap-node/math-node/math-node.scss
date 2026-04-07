@@ -1,0 +1,91 @@
+.math-node-wrapper {
+  margin: 1rem 0;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--border) / 0.5);
+  background: hsl(var(--card) / 0.5);
+  transition: border-color 0.15s;
+
+  &.math-node-selected {
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+  }
+}
+
+.math-node-editor {
+  padding: 1rem;
+}
+
+.math-node-editor-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.4;
+  margin-bottom: 0.5rem;
+}
+
+.math-node-textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 0.75rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+  }
+
+  &::placeholder {
+    opacity: 0.35;
+  }
+}
+
+.math-node-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.math-node-hint {
+  font-size: 11px;
+  opacity: 0.35;
+}
+
+.math-node-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.math-node-btn-confirm {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.math-node-render {
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+  text-align: center;
+  min-height: 40px;
+
+  .katex-display {
+    margin: 0;
+  }
+}

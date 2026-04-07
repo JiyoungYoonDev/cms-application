@@ -15,11 +15,15 @@ export default function CourseSectionLecturesPage({ params }) {
   const { data: sectionData } = useSectionById(courseId, sectionId);
   const sectionName = sectionData?.data?.title ?? sectionData?.title ?? `Section #${sectionId}`;
 
-  const lectures =
+  const rawLectures =
     data?.data?.content ??
     data?.data ??
     data?.content ??
     (Array.isArray(data) ? data : []);
+
+  const lectures = [...rawLectures].sort(
+    (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+  );
 
   const handleAddLecture = useCallback(() => {
     router.push(`/admin/courses/${courseId}/sections/${sectionId}/lectures/new`);
