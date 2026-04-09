@@ -28,6 +28,7 @@ import { ImageUploadNode } from '@/components/common/tiptap/tiptap-node/image-up
 import { HorizontalRule } from '@/components/common/tiptap/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension';
 import { MathBlock } from '@/components/common/tiptap/tiptap-node/math-node/math-node-extension';
 import { GraphBlock } from '@/components/common/tiptap/tiptap-node/graph-node/graph-node-extension';
+import { CheckpointBlock } from '@/components/common/tiptap/tiptap-node/checkpoint-node/checkpoint-node-extension';
 import '@/components/common/tiptap/tiptap-node/blockquote-node/blockquote-node.scss';
 import '@/components/common/tiptap/tiptap-node/code-block-node/code-block-node.scss';
 import '@/components/common/tiptap/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss';
@@ -222,6 +223,7 @@ export function SimpleEditor({
       }),
       MathBlock,
       GraphBlock,
+      CheckpointBlock,
     ],
   });
 

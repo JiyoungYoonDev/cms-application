@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { generateHTML } from '@tiptap/core';
 import DOMPurify from 'dompurify';
@@ -17,6 +17,8 @@ import { Header } from '@/components/common/layout/page-header';
 import { useLectureItemById } from '@/features/lectures/hooks';
 import { ItemPreviewModal } from '@/features/lectures/components/items/item-preview-modal';
 import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
+import { regenerateItem } from '@/features/courses/services/generation-service';
+import { RefreshCw } from 'lucide-react';
 
 // Lightweight stand-in nodes for generateHTML (no React view needed)
 const MathBlockPreview = Node.create({
@@ -44,6 +46,17 @@ const GraphBlockPreview = Node.create({
     return ['div', { 'data-type': 'graph-block', class: 'graph-preview' }, `f(x) = ${HTMLAttributes.expression}`];
   },
 });
+const CheckpointBlockPreview = Node.create({
+  name: 'checkpointBlock',
+  group: 'block',
+  atom: true,
+  addAttributes() {
+    return { question: { default: '' }, answer: { default: '' }, hint: { default: '' }, blockId: { default: '' } };
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['div', { 'data-type': 'checkpoint-block', class: 'checkpoint-preview' }, `✏️ ${HTMLAttributes.question || 'Checkpoint'}`];
+  },
+});
 
 const PREVIEW_EXTENSIONS = [
   StarterKit,
@@ -56,6 +69,7 @@ const PREVIEW_EXTENSIONS = [
   TaskItem.configure({ nested: true }),
   MathBlockPreview,
   GraphBlockPreview,
+  CheckpointBlockPreview,
 ];
 
 function parseContent(raw) {
@@ -227,10 +241,48 @@ function ProjectPreview({ parsed }) {
   );
 }
 
+function CheckpointPreview({ parsed }) {
+  const blocks = Array.isArray(parsed?.blocks) ? parsed.blocks : [];
+  if (blocks.length === 0) return <p className='text-sm text-muted-foreground italic'>No content</p>;
+
+  let cpN = 0;
+  return (
+    <div className='space-y-4'>
+      {blocks.map((block, i) => {
+        if (block.type === 'text') {
+          return (
+            <div key={block.id ?? i} className='rounded-lg bg-muted/30 p-3'>
+              <p className='text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2'>Text Block</p>
+              <TiptapPreview doc={block.content} />
+            </div>
+          );
+        }
+        if (block.type === 'checkpoint') {
+          cpN++;
+          return (
+            <div key={block.id ?? i} className='rounded-lg border border-violet-500/30 p-4 space-y-2'>
+              <span className='text-xs font-black uppercase tracking-widest text-violet-500/70'>Checkpoint {cpN}</span>
+              <p className='text-sm font-medium'>{block.question || <em className='text-muted-foreground'>No question</em>}</p>
+              {block.answer && <p className='text-xs text-emerald-600 font-mono'>Answer: {block.answer}</p>}
+              {block.hint && <p className='text-xs text-amber-500 italic'>Hint: {block.hint}</p>}
+            </div>
+          );
+        }
+        return null;
+      })}
+    </div>
+  );
+}
+
 function ContentPreview({ content, itemType }) {
   const parsed = parseContent(content);
   if (!parsed) {
     return <p className='text-sm text-muted-foreground italic'>No content</p>;
+  }
+
+  // CHECKPOINT
+  if (itemType === 'CHECKPOINT') {
+    return <CheckpointPreview parsed={parsed} />;
   }
 
   // QUIZ_SET / TEST_BLOCK — same blocks structure
@@ -296,10 +348,74 @@ function ContentPreview({ content, itemType }) {
                 </div>
               )}
 
-              {problem.expectedOutput && (
+              {Array.isArray(problem.testCases) && problem.testCases.length > 0 && (
+                <div>
+                  <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>
+                    Test Cases ({problem.testCases.length})
+                    {problem.functionName && (
+                      <span className='ml-2 text-violet-500 normal-case tracking-normal font-mono'>
+                        fn: {problem.functionName}()
+                      </span>
+                    )}
+                    {problem.evaluationStyle && (
+                      <span className='ml-2 text-[10px] bg-muted px-1.5 py-0.5 rounded normal-case tracking-normal'>
+                        {problem.evaluationStyle}
+                      </span>
+                    )}
+                  </p>
+                  <div className='space-y-2'>
+                    {problem.testCases.map((tc, ti) => {
+                      // Function-based stored with args/expected, console with input/expectedOutput
+                      const isFn = Array.isArray(tc.args);
+                      return (
+                        <div key={ti} className='rounded-lg border bg-muted/30 p-3 space-y-1'>
+                          <div className='flex items-center gap-2'>
+                            <span className='text-xs font-bold text-muted-foreground'>Test {ti + 1}</span>
+                          </div>
+                          <div className='grid grid-cols-2 gap-3 text-xs font-mono'>
+                            <div>
+                              <span className='text-muted-foreground font-sans font-bold'>
+                                {isFn ? 'Args' : 'Input'}
+                              </span>
+                              <pre className='mt-1 bg-muted rounded px-2 py-1.5 whitespace-pre-wrap min-h-[28px]'>
+                                {isFn
+                                  ? JSON.stringify(tc.args)
+                                  : (tc.input || <span className='text-muted-foreground italic font-sans'>(no stdin)</span>)}
+                              </pre>
+                            </div>
+                            <div>
+                              <span className='text-muted-foreground font-sans font-bold'>
+                                {isFn ? 'Expected Return' : 'Expected Output'}
+                              </span>
+                              <pre className='mt-1 bg-muted rounded px-2 py-1.5 whitespace-pre-wrap min-h-[28px]'>
+                                {isFn ? JSON.stringify(tc.expected) : tc.expectedOutput}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {problem.expectedOutput && !problem.testCases?.length && (
                 <div>
                   <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Expected Output</p>
                   <pre className='bg-muted rounded-lg p-3 text-sm font-mono whitespace-pre-wrap'>{problem.expectedOutput}</pre>
+                </div>
+              )}
+
+              {Array.isArray(problem.hints) && problem.hints.length > 0 && (
+                <div>
+                  <p className='text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2'>Hints</p>
+                  <ul className='space-y-1 text-sm text-muted-foreground'>
+                    {problem.hints.map((h, hi) => (
+                      <li key={hi} className='flex gap-2'>
+                        <span className='text-amber-500'>💡</span> {h}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>
@@ -316,11 +432,34 @@ function ContentPreview({ content, itemType }) {
 export default function LectureItemDetailPage({ params }) {
   const router = useRouter();
   const { courseId, sectionId, lectureId, itemId } = use(params);
+  const [regenerating, setRegenerating] = useState(false);
+  const [regenResult, setRegenResult] = useState(null);
 
-  const { data, isLoading } = useLectureItemById(itemId);
+  const { data, isLoading, refetch } = useLectureItemById(itemId);
   const item = data?.data ?? data;
 
   const lecturePath = `/admin/courses/${courseId}/sections/${sectionId}/lectures/${lectureId}`;
+
+  async function handleRegenerate() {
+    if (regenerating) return;
+    if (!window.confirm(`"${item?.title}" 의 콘텐츠를 다시 생성하시겠습니까?`)) return;
+    setRegenerating(true);
+    setRegenResult(null);
+    try {
+      const res = await regenerateItem(itemId);
+      const output = res?.data;
+      setRegenResult({
+        success: true,
+        message: `Regenerated successfully. Output ID: ${output?.outputId ?? 'N/A'}, Strategy: ${output?.parseStrategy ?? 'N/A'}, Tokens: ${output?.promptTokens ?? 0}+${output?.completionTokens ?? 0}`,
+        outputId: output?.outputId,
+      });
+      refetch?.();
+    } catch (e) {
+      setRegenResult({ success: false, message: e?.message || 'Regeneration failed.' });
+    } finally {
+      setRegenerating(false);
+    }
+  }
 
   return (
     <div className='max-w-4xl mx-auto space-y-8 py-8'>
@@ -328,11 +467,21 @@ export default function LectureItemDetailPage({ params }) {
         title={isLoading ? 'Loading...' : (item?.title || 'Item')}
         description={item?.itemType ?? ''}
         actions={
-          <>
+          <div className='flex items-center gap-2'>
             <Button variant='outline' size='sm' onClick={() => router.push(lecturePath)}>
               Back
             </Button>
             <ItemPreviewModal item={item} isLoading={isLoading} />
+            <Button
+              size='sm'
+              variant='outline'
+              onClick={handleRegenerate}
+              disabled={regenerating || isLoading}
+              className='gap-1.5'
+            >
+              <RefreshCw size={14} className={regenerating ? 'animate-spin' : ''} />
+              {regenerating ? 'Generating...' : 'Regenerate'}
+            </Button>
             <Button
               size='sm'
               onClick={() =>
@@ -343,9 +492,15 @@ export default function LectureItemDetailPage({ params }) {
             >
               Edit
             </Button>
-          </>
+          </div>
         }
       />
+
+      {regenResult && (
+        <div className={`rounded-lg px-4 py-3 text-sm font-medium ${regenResult.success ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+          {regenResult.message}
+        </div>
+      )}
 
       <section className='rounded-2xl border bg-card p-6 shadow-sm'>
         <ContentPreview content={item?.contentJson ?? item?.content} itemType={item?.itemType} />

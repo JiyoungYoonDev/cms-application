@@ -15,6 +15,7 @@ import {
 import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { CodingSetFields } from '@/features/lectures/components/items/coding-set-fields';
 import { QuizSetFields } from '@/features/lectures/components/items/quiz-set-fields';
+import { CheckpointFields } from '@/features/lectures/components/items/checkpoint-fields';
 import { ProjectFields } from '@/features/lectures/components/items/project-fields';
 import { Header } from '@/components/common/layout/page-header';
 import { Type, AlignLeft } from 'lucide-react';
@@ -104,7 +105,7 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
               </Select>
             ),
           },
-          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'PROJECT' && values.itemType !== 'PROJECT_TASK' ? [{
+          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'PROJECT' && values.itemType !== 'PROJECT_TASK' && values.itemType !== 'CHECKPOINT' ? [{
             key: 'content',
             label: (
               <span className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40'>
@@ -131,6 +132,12 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
       )}
       {values.itemType === 'QUIZ_SET' && (
         <QuizSetFields
+          value={values.content}
+          onChange={(val) => handleChange('content', val)}
+        />
+      )}
+      {values.itemType === 'CHECKPOINT' && (
+        <CheckpointFields
           value={values.content}
           onChange={(val) => handleChange('content', val)}
         />

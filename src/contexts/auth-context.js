@@ -18,11 +18,9 @@ export function AuthProvider({ children }) {
     }
     getMeApi()
       .then((res) => {
-        console.log('getMeApi success:', res);
         setUser(res?.data ?? null);
       })
-      .catch((err) => {
-        console.error('getMeApi failed:', err);
+      .catch(() => {
         setUser(null);
       })
       .finally(() => setIsLoading(false));

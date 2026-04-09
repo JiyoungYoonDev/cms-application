@@ -11,6 +11,14 @@ export function middleware(request) {
     return NextResponse.next();
   }
 
+  // Root page → redirect to courses or login
+  if (pathname === '/') {
+    if (accessToken) {
+      return NextResponse.redirect(new URL('/admin/courses', request.url));
+    }
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   if (!accessToken) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
@@ -19,5 +27,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/login', '/admin/:path*'],
+  matcher: ['/', '/login', '/admin/:path*'],
 };

@@ -4,18 +4,23 @@ import { use, useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header, HeaderAction } from '@/components/common/layout/page-header';
 import { StatsOverview } from '@/components/common/data-display/stats/stat-overview';
-import { useCourse } from '@/features/courses/hooks/use-course';
+import { useCourse, useDeleteCourse } from '@/features/courses/hooks/use-course';
 import { useCourseEnrollments } from '@/features/courses/hooks/use-enrollments';
 import CourseHeader from '@/features/courses/components/header/course-page-header';
 import CourseSectionContainer from '@/features/courses/components/table/courses-detail-table-container';
 import { Button } from '@/components/ui/button';
-import { Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, ChevronLeft, ChevronRight, Trash2, Sparkles } from 'lucide-react';
+import SectionGenerateModal from '@/features/courses/components/generate/section-generate-modal';
 
 export default function CourseDetailPage({ params }) {
   const router = useRouter();
   const { courseId } = use(params);
   const { data: data, isLoading } = useCourse(courseId);
+  const { mutate: deleteMutate, isPending: isDeleting } = useDeleteCourse({
+    onSuccess: () => router.push('/admin/courses'),
+  });
   const [enrollPage, setEnrollPage] = useState(0);
+  const [showSectionGenModal, setShowSectionGenModal] = useState(false);
   const { data: enrollData } = useCourseEnrollments(courseId, enrollPage);
   const course = data?.data ?? {};
    
@@ -69,6 +74,12 @@ export default function CourseDetailPage({ params }) {
     window.alert('Publish flow placeholder');
   }, []);
 
+  const handleDeleteCourse = useCallback(() => {
+    if (window.confirm(`"${course.title}" 코스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
+      deleteMutate(courseId);
+    }
+  }, [course.title, courseId, deleteMutate]);
+
   console.log('COURSE ', course);
   const handleAddSection = useCallback(() => {
     router.push(`/admin/courses/${courseId}/sections/new`);
@@ -76,6 +87,11 @@ export default function CourseDetailPage({ params }) {
 
   return (
     <div className='max-w-7xl mx-auto space-y-10 py-8'>
+      <SectionGenerateModal
+        open={showSectionGenModal}
+        onClose={() => setShowSectionGenModal(false)}
+        courseId={courseId}
+      />
       <CourseHeader
         type='detail'
         course={course}
@@ -100,12 +116,33 @@ export default function CourseDetailPage({ params }) {
             </Button>
 
             <Button
+              variant='add'
+              size='sm'
+              onClick={() => setShowSectionGenModal(true)}
+              className='rounded-xl border-border px-5 font-bold'
+            >
+              <Sparkles size={14} className='mr-1' />
+              AI Add Section
+            </Button>
+
+            <Button
               variant='publish'
               onClick={handlePublishBook}
               size='sm'
               className='rounded-xl bg-foreground text-background hover:opacity-90 px-6 font-black'
             >
               Publish
+            </Button>
+
+            <Button
+              variant='destructive'
+              size='sm'
+              onClick={handleDeleteCourse}
+              disabled={isDeleting}
+              className='rounded-xl px-5 font-bold'
+            >
+              <Trash2 size={14} className='mr-1' />
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </Button>
           </>
         }

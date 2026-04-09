@@ -36,6 +36,7 @@ import {
   AlertCircle,
   UsersRound,
   Crown,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '../common/tiptap/simple/theme-toggle';
@@ -108,6 +109,16 @@ export function AppSidebar() {
                 <Link href='/admin/courses' className='flex items-center gap-3 px-3 py-2 rounded-md'>
                   <FolderKanban size={18} className='group-hover:text-admin-dark transition-colors' />
                   <span className='font-medium'>Project</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* AI Generation */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className='hover:bg-admin-light transition-colors group'>
+                <Link href='/admin/generation' className='flex items-center gap-3 px-3 py-2 rounded-md'>
+                  <Sparkles size={18} className='group-hover:text-admin-dark transition-colors' />
+                  <span className='font-medium'>AI Generation</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

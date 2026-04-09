@@ -2,6 +2,7 @@ import { queryKeys } from '@/lib/api/query-keys';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createCourse,
+  deleteCourse,
   getCourseById,
   getCourses,
   updateCourseMutation,
@@ -38,6 +39,21 @@ export function useUpdateCourse(options = {}) {
         });
       }
 
+      options.onSuccess?.(data, variables, context);
+    },
+    ...options,
+  });
+}
+
+export function useDeleteCourse(options = {}) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id) => deleteCourse(id),
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courses.lists(),
+      });
       options.onSuccess?.(data, variables, context);
     },
     ...options,

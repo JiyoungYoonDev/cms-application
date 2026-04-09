@@ -78,7 +78,11 @@ function applyMathToHtml(html) {
 
 function renderMath(text) {
   if (!text) return '';
-  let result = text.replace(/\$\$([^$]+)\$\$/g, (_, expr) => {
+  // Backtick inline code → <code> tags (before math processing to avoid conflicts)
+  let result = text.replace(/`([^`]+)`/g, (_, code) =>
+    `<code style="padding:1px 6px;border-radius:4px;background:#2a2a44;color:#c4b5fd;font-size:0.8em;font-family:monospace">${code}</code>`
+  );
+  result = result.replace(/\$\$([^$]+)\$\$/g, (_, expr) => {
     try { return katex.renderToString(expr.trim(), { displayMode: true, throwOnError: false }); }
     catch { return expr; }
   });
@@ -512,7 +516,47 @@ function SingleCodingProblem({ problem }) {
         </div>
       )}
 
-      {problem.expectedOutput && (
+      {Array.isArray(problem.testCases) && problem.testCases.length > 0 && (
+        <div>
+          <p className='text-[10px] font-black uppercase tracking-widest text-[#5a5a72] mb-2'>
+            Test Cases ({problem.testCases.length})
+            {problem.functionName && (
+              <span className='ml-2 text-violet-400 normal-case tracking-normal font-mono'>fn: {problem.functionName}()</span>
+            )}
+            {problem.evaluationStyle && (
+              <span className='ml-2 text-[10px] bg-[#1a1a2e] border border-[#2a2a3e] px-1.5 py-0.5 rounded normal-case tracking-normal text-[#9090a8]'>
+                {problem.evaluationStyle}
+              </span>
+            )}
+          </p>
+          <div className='space-y-2'>
+            {problem.testCases.map((tc, ti) => {
+              const isFn = Array.isArray(tc.args);
+              return (
+                <div key={ti} className='rounded-lg border border-[#2a2a3e] bg-[#0d1117] p-3 space-y-1'>
+                  <span className='text-xs font-bold text-[#5a5a72]'>Test {ti + 1}</span>
+                  <div className='grid grid-cols-2 gap-3 text-xs font-mono'>
+                    <div>
+                      <span className='text-[#5a5a72] font-sans font-bold'>{isFn ? 'Args' : 'Input'}</span>
+                      <pre className='mt-1 bg-[#1a1a2e] rounded px-2 py-1.5 text-[#c9d1d9] whitespace-pre-wrap min-h-[28px]'>
+                        {isFn ? JSON.stringify(tc.args) : (tc.input || '(no stdin)')}
+                      </pre>
+                    </div>
+                    <div>
+                      <span className='text-[#5a5a72] font-sans font-bold'>{isFn ? 'Expected Return' : 'Expected Output'}</span>
+                      <pre className='mt-1 bg-[#1a1a2e] rounded px-2 py-1.5 text-[#c9d1d9] whitespace-pre-wrap min-h-[28px]'>
+                        {isFn ? JSON.stringify(tc.expected) : tc.expectedOutput}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {problem.expectedOutput && !problem.testCases?.length && (
         <div>
           <p className='text-[10px] font-black uppercase tracking-widest text-[#5a5a72] mb-2'>Expected Output</p>
           <pre className='bg-[#0d1117] border border-[#2a2a3e] rounded-lg p-4 text-sm font-mono text-[#c9d1d9] whitespace-pre-wrap'>{problem.expectedOutput}</pre>
@@ -522,7 +566,7 @@ function SingleCodingProblem({ problem }) {
       {(problem.hints ?? []).length > 0 && (
         <div className='space-y-2'>
           {problem.hints.map((h, i) => (
-            <div key={i} className='bg-[#1e1e32] border-l-2 border-amber-400/60 rounded-lg px-4 py-2.5 text-sm text-[#b0b0c8]'>💡 {h}</div>
+            <div key={i} className='bg-[#1e1e32] border-l-2 border-amber-400/60 rounded-lg px-4 py-2.5 text-sm text-[#b0b0c8]'>💡 <MathText text={h} /></div>
           ))}
         </div>
       )}

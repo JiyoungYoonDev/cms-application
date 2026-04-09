@@ -7,7 +7,7 @@ import {
 import { cellAround, CellSelection } from "@tiptap/pm/tables"
 import { findParentNodeClosestToPos } from "@tiptap/react";
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+export const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB (images + videos)
 
 export const MAC_SYMBOLS = {
   mod: "⌘",
@@ -315,15 +315,16 @@ export function selectionWithinConvertibleTypes(editor, types = []) {
   return false
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? ''
+
 /**
- * Handles image upload with progress tracking and abort capability
+ * Handles file upload (images + videos) to S3 via the backend API.
  * @param file The file to upload
  * @param onProgress Optional callback for tracking upload progress
  * @param abortSignal Optional AbortSignal for cancelling the upload
- * @returns Promise resolving to the URL of the uploaded image
+ * @returns Promise resolving to the permanent S3 URL
  */
 export const handleImageUpload = async (file, onProgress, abortSignal) => {
-  // Validate file
   if (!file) {
     throw new Error("No file provided")
   }
@@ -332,17 +333,34 @@ export const handleImageUpload = async (file, onProgress, abortSignal) => {
     throw new Error(`File size exceeds maximum allowed (${MAX_FILE_SIZE / (1024 * 1024)}MB)`)
   }
 
-  // For demo/testing: Simulate upload progress. In production, replace the following code
-  // with your own upload implementation.
-  for (let progress = 0; progress <= 100; progress += 10) {
-    if (abortSignal?.aborted) {
-      throw new Error("Upload cancelled")
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    onProgress?.({ progress })
+  const formData = new FormData()
+  formData.append("file", file)
+  formData.append("folder", "content")
+
+  onProgress?.({ progress: 10 })
+
+  const url = API_BASE_URL
+    ? new URL("/api/cms/files/upload", API_BASE_URL).toString()
+    : "/api/cms/files/upload"
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+    signal: abortSignal,
+  })
+
+  onProgress?.({ progress: 90 })
+
+  if (!response.ok) {
+    const msg = await response.text().catch(() => "Upload failed")
+    throw new Error(msg)
   }
 
-  return URL.createObjectURL(file)
+  const data = await response.json()
+  onProgress?.({ progress: 100 })
+
+  return data.url
 }
 
 const ATTR_WHITESPACE =

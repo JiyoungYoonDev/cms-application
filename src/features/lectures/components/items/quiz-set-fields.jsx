@@ -250,7 +250,7 @@ function QuizBlock({ block, onChange }) {
           </label>
           <div className='space-y-2'>
             {block.options.map((opt, i) => (
-              <div key={opt.id} className='flex items-center gap-3'>
+              <div key={`${opt.id}-${i}`} className='flex items-center gap-3'>
                 <button
                   type='button'
                   onClick={() => handleOptionCorrect(opt.id)}
