@@ -33,8 +33,11 @@ export default function LecturesTableContainer({ sectionId, lectures, isLoading,
     });
   }, [lectures, sectionId, reorder]);
 
+  if (!baseUrl) {
+    throw new Error('LecturesTableContainer: `baseUrl` prop is required.');
+  }
+
   const displayLectures = localLectures ?? lectures;
-  const resolvedBaseUrl = baseUrl ?? `/admin/sections/${sectionId}/lectures`;
 
   // Sync: clear local state when parent lectures update with matching sort orders
   useEffect(() => {
@@ -60,9 +63,9 @@ export default function LecturesTableContainer({ sectionId, lectures, isLoading,
 
   const handleEdit = useCallback(
     (lecture) => {
-      router.push(`${resolvedBaseUrl}/${lecture.id}/edit`);
+      router.push(`${baseUrl}/${lecture.id}/edit`);
     },
-    [router, resolvedBaseUrl],
+    [router, baseUrl],
   );
 
   const handleDelete = useCallback((lecture) => {
@@ -73,9 +76,9 @@ export default function LecturesTableContainer({ sectionId, lectures, isLoading,
   const handleRowClick = useCallback(
     (row) => {
       const lecture = row?.original ?? row;
-      router.push(`${resolvedBaseUrl}/${lecture.id}`);
+      router.push(`${baseUrl}/${lecture.id}`);
     },
-    [router, resolvedBaseUrl],
+    [router, baseUrl],
   );
 
   const columns = useMemo(

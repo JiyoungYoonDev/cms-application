@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { LectureEditorPanel } from '@/components/admin/cms/lecture-editor-panel';
@@ -14,21 +14,28 @@ import {
 
 const isNew = (id) => id === 'new';
 
-export default function LectureEditorPage({ params }) {
-  const router = useRouter();
-  const resolvedParams =
-    typeof params?.then === 'function' ? use(params) : params;
-  const { sectionId, lectureId } = resolvedParams;
+const DEFAULT_FORM = {
+  title: '',
+  description: '',
+  contentJson: { type: 'doc', content: [] },
+  durationMinutes: 10,
+  isPreview: false,
+  isPublished: false,
+  lectureType: 'TEXT',
+};
 
-  const [formValues, setFormValues] = useState({
-    title: '',
-    description: '',
-    contentJson: { type: 'doc', content: [] },
-    durationMinutes: 10,
-    isPreview: false,
-    isPublished: false,
-    lectureType: 'TEXT',
-  });
+/**
+ * Lecture editor shell — feature-level component that owns all editing logic.
+ * Route files should stay thin wrappers that pass sectionId/lectureId/basePath.
+ *
+ * Navigation contract (preserved from prior behavior):
+ *  - on create  → router.push(basePath)                   (back to list)
+ *  - on update  → router.push(`${basePath}/${lectureId}`) (lecture detail)
+ */
+export function LectureEditorShell({ sectionId, lectureId, basePath }) {
+  const router = useRouter();
+
+  const [formValues, setFormValues] = useState(DEFAULT_FORM);
   const [draftHydrated, setDraftHydrated] = useState(false);
 
   const { data: lectureData } = useLectureById(
@@ -61,14 +68,14 @@ export default function LectureEditorPage({ params }) {
   const { mutate: create, isPending: isCreating } = useCreateLecture({
     onSuccess: () => {
       window.sessionStorage.removeItem(`lecture-draft:${lectureId}`);
-      router.push(`/admin/sections/${sectionId}/lectures`);
+      router.push(basePath);
     },
   });
 
   const { mutate: update, isPending: isUpdating } = useUpdateLecture({
     onSuccess: () => {
       window.sessionStorage.removeItem(`lecture-draft:${lectureId}`);
-      router.push(`/admin/sections/${sectionId}/lectures/${lectureId}`);
+      router.push(`${basePath}/${lectureId}`);
     },
   });
 
@@ -99,10 +106,14 @@ export default function LectureEditorPage({ params }) {
     }
   }, [formValues, sectionId, lectureId, create, update]);
 
+  // Draft hydration — load any persisted sessionStorage draft on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const raw = window.sessionStorage.getItem(`lecture-draft:${lectureId}`);
-    if (!raw) return;
+    if (!raw) {
+      setDraftHydrated(true);
+      return;
+    }
     try {
       const parsed = JSON.parse(raw);
       setFormValues((prev) => ({ ...prev, ...parsed }));
@@ -113,13 +124,7 @@ export default function LectureEditorPage({ params }) {
     }
   }, [lectureId]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const raw = window.sessionStorage.getItem(`lecture-draft:${lectureId}`);
-    if (raw) return;
-    setDraftHydrated(true);
-  }, [lectureId]);
-
+  // Draft persistence — save form values to sessionStorage after hydration
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!draftHydrated) return;
@@ -138,21 +143,6 @@ export default function LectureEditorPage({ params }) {
     );
   }, [draftHydrated, formValues, lectureId]);
 
-  const handlePreview = () => {
-    if (typeof window !== 'undefined') {
-      const payload = {
-        title: formValues.title,
-        contentJson: formValues.contentJson,
-      };
-      window.sessionStorage.setItem(
-        `lecture-preview:${lectureId}`,
-        JSON.stringify(payload),
-      );
-    }
-
-    router.push(`/admin/sections/${sectionId}/lectures/${lectureId}/preview`);
-  };
-
   return (
     <div className='grid gap-6 lg:grid-cols-[1fr_320px]'>
       <div className='space-y-6'>
@@ -163,9 +153,6 @@ export default function LectureEditorPage({ params }) {
             <>
               <Button variant='outline' onClick={() => router.back()}>
                 Back
-              </Button>
-              <Button variant='outline' onClick={handlePreview}>
-                Preview
               </Button>
               <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving ? 'Saving...' : 'Save Lecture'}
