@@ -11,6 +11,7 @@ import CourseSectionContainer from '@/features/courses/components/table/courses-
 import { Button } from '@/components/ui/button';
 import { Users, ChevronLeft, ChevronRight, Trash2, Sparkles } from 'lucide-react';
 import SectionGenerateModal from '@/features/courses/components/generate/section-generate-modal';
+import { ScopedValidationPanel } from '@/features/generation/components/scoped-validation-panel';
 
 export default function CourseDetailPage({ params }) {
   const router = useRouter();
@@ -158,6 +159,10 @@ export default function CourseDetailPage({ params }) {
           sections={sectionData}
           isLoading={isLoading}
         />
+      </div>
+
+      <div className='px-4'>
+        <ScopedValidationPanel scopeType='COURSE' targetId={courseId} />
       </div>
 
       {/* Enrollments */}

@@ -1,7 +1,10 @@
 'use client';
 
-import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck, FlaskConical, Loader2 } from 'lucide-react';
 import { useValidationOverview } from '../hooks/use-validation-overview';
+import { runMathCheck } from '../services/generation-admin-service';
+import { useQueryClient } from '@tanstack/react-query';
 
 function fmtPct(n) {
   if (n == null) return '-';
@@ -21,6 +24,7 @@ const RULE_META = {
   CHECKPOINT_SCHEMA_VALID: { label: 'Checkpoint Schema Valid', desc: 'checkpoint blocks with question + answer', icon: ShieldCheck },
   MIN_CONTENT_LENGTH:      { label: 'Min Content Length', desc: 'Content meets minimum character threshold', icon: CheckCircle2 },
   GRAPH_PRESENT_FOR_MATH:  { label: 'Graph Present (Math)', desc: 'Math RICH_TEXT contains graphBlock nodes', icon: CheckCircle2 },
+  MATH_ACCURACY:           { label: 'Math Accuracy', desc: 'LLM cross-check verified question answers are correct', icon: FlaskConical },
 };
 
 function RuleCard({ ruleName, stats }) {
@@ -69,12 +73,34 @@ function RuleCard({ ruleName, stats }) {
 }
 
 export default function ValidationTab() {
+  const queryClient = useQueryClient();
   const { data: res, isLoading } = useValidationOverview();
   const ov = res?.data ?? {};
   const rules = ov.ruleBreakdown ?? {};
 
   // Sort rules: worst pass rate first
   const sortedRules = Object.entries(rules).sort(([, a], [, b]) => Number(a.passRate) - Number(b.passRate));
+
+  // Math check state
+  const [mathJobId, setMathJobId] = useState('');
+  const [mathRunning, setMathRunning] = useState(false);
+  const [mathResult, setMathResult] = useState(null);
+
+  async function handleMathCheck() {
+    const id = Number(mathJobId);
+    if (!id) return;
+    setMathRunning(true);
+    setMathResult(null);
+    try {
+      const res = await runMathCheck({ jobId: id });
+      setMathResult(res?.data ?? res);
+      queryClient.invalidateQueries({ queryKey: ['generation', 'validation', 'overview'] });
+    } catch (e) {
+      setMathResult({ error: e?.message ?? 'Failed' });
+    } finally {
+      setMathRunning(false);
+    }
+  }
 
   return (
     <div className='space-y-6'>
@@ -85,6 +111,58 @@ export default function ValidationTab() {
         <SumCard label='Passed' value={ov.passedChecks ?? 0} color='text-emerald-600' />
         <SumCard label='Overall Pass Rate' value={fmtPct(ov.overallPassRate)}
           color={Number(ov.overallPassRate) >= 80 ? 'text-emerald-600' : 'text-red-600'} />
+      </div>
+
+      {/* Math Accuracy Check */}
+      <div className='rounded-lg border p-4 space-y-3'>
+        <div className='flex items-center gap-2'>
+          <FlaskConical size={15} className='text-violet-500' />
+          <h3 className='text-sm font-semibold'>Math Accuracy Check</h3>
+          <span className='text-xs text-muted-foreground'>(LLM-as-a-Judge)</span>
+        </div>
+        <div className='flex items-center gap-2'>
+          <input
+            type='number'
+            placeholder='Job ID'
+            value={mathJobId}
+            onChange={(e) => setMathJobId(e.target.value)}
+            className='w-32 px-3 py-1.5 text-sm rounded-lg border bg-background'
+          />
+          <button
+            onClick={handleMathCheck}
+            disabled={!mathJobId || mathRunning}
+            className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+                       bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 disabled:opacity-50 transition-colors'
+          >
+            {mathRunning ? <Loader2 size={12} className='animate-spin' /> : <FlaskConical size={12} />}
+            {mathRunning ? 'Checking...' : 'Run Check'}
+          </button>
+        </div>
+
+        {mathResult && (
+          mathResult.error ? (
+            <p className='text-xs text-red-500'>{mathResult.error}</p>
+          ) : (
+            <div className='text-xs space-y-1'>
+              <p>
+                Checked <strong>{mathResult.checked}</strong> problems:
+                <span className='text-emerald-600 ml-2'>{mathResult.passed} passed</span>
+                <span className='text-red-600 ml-2'>{mathResult.failed} failed</span>
+              </p>
+              {mathResult.details?.filter(d => !d.passed).map((d, i) => (
+                <div key={i} className='flex items-start gap-2 p-2 rounded bg-red-500/5 border border-red-200 dark:border-red-800'>
+                  <XCircle size={12} className='text-red-500 mt-0.5 shrink-0' />
+                  <span className='text-red-600'>{d.message}</span>
+                </div>
+              ))}
+              {mathResult.failed === 0 && mathResult.checked > 0 && (
+                <p className='text-emerald-600 flex items-center gap-1'>
+                  <CheckCircle2 size={12} /> All answers verified correct
+                </p>
+              )}
+            </div>
+          )
+        )}
       </div>
 
       {/* Rules grid */}

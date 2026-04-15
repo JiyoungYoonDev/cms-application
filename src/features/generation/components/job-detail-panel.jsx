@@ -5,11 +5,12 @@ import {
   ArrowLeft, CheckCircle2, XCircle, AlertTriangle,
   ChevronDown, ChevronRight, Clock, Zap, Target, DollarSign,
   AlertCircle, RefreshCw, Layers, BookOpen, FileCode2, Eye,
-  ShieldAlert, FileWarning, Search, Settings2,
+  ShieldAlert, FileWarning, Search, Settings2, Square, Play,
+  ShieldCheck, Loader2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useJobDetail } from '../hooks/use-generation-job-detail';
-import { updateBatchStatus, updateTaskStatus, retryTask, retryBatch } from '../services/generation-admin-service';
+import { updateBatchStatus, updateTaskStatus, retryTask, retryBatch, stopJob, resumeJob, getJobValidations, revalidateJob, overrideValidation, compareRounds } from '../services/generation-admin-service';
 import { useQueryClient } from '@tanstack/react-query';
 
 // ── Helpers ──
@@ -107,6 +108,7 @@ const STATUS_STYLE = {
   IN_PROGRESS:         { icon: Clock, color: 'text-blue-600', bg: 'bg-blue-500/10', border: '' },
   PENDING:             { icon: Clock, color: 'text-muted-foreground', bg: 'bg-muted', border: '' },
   SKIPPED:             { icon: AlertCircle, color: 'text-muted-foreground', bg: 'bg-muted', border: '' },
+  CANCELLED:           { icon: XCircle, color: 'text-orange-600', bg: 'bg-orange-500/10', border: 'border-orange-300 dark:border-orange-800' },
   SPLIT:               { icon: Layers, color: 'text-violet-600', bg: 'bg-violet-500/10', border: 'border-violet-300 dark:border-violet-800' },
 };
 
@@ -993,12 +995,264 @@ function FormInputsSection({ d }) {
   );
 }
 
+function FailureItem({ f, onOverride }) {
+  const [overriding, setOverriding] = useState(false);
+  const isOverridden = Boolean(f.manualOverride);
+
+  async function handleOverride() {
+    const reason = prompt(isOverridden ? 'Remove override?' : 'Override reason (why this is actually correct):');
+    if (reason === null) return;
+    setOverriding(true);
+    try {
+      await overrideValidation(f.id, !isOverridden, reason || '');
+      onOverride?.();
+    } catch (e) {
+      alert('Override failed: ' + (e?.message ?? 'unknown'));
+    } finally {
+      setOverriding(false);
+    }
+  }
+
+  return (
+    <div className={`flex items-start gap-2 text-xs ${isOverridden ? 'opacity-60' : ''}`}>
+      {isOverridden
+        ? <CheckCircle2 size={12} className='text-blue-500 mt-0.5 shrink-0' />
+        : f.severity === 'ERROR'
+          ? <XCircle size={12} className='text-red-500 mt-0.5 shrink-0' />
+          : <AlertTriangle size={12} className='text-amber-500 mt-0.5 shrink-0' />}
+      <div className='min-w-0 flex-1'>
+        <span className={`font-medium ${isOverridden ? 'text-blue-600 line-through' : f.severity === 'ERROR' ? 'text-red-600' : 'text-amber-600'}`}>
+          {f.ruleName}
+        </span>
+        <span className='text-muted-foreground ml-1.5'>{f.message}</span>
+        {isOverridden && f.overrideReason && (
+          <span className='text-blue-500 ml-1.5 italic'>({f.overrideReason})</span>
+        )}
+      </div>
+      <button
+        onClick={handleOverride}
+        disabled={overriding}
+        className='shrink-0 px-1.5 py-0.5 text-[10px] rounded border hover:bg-muted transition-colors disabled:opacity-50'
+        title={isOverridden ? 'Remove override' : 'Mark as correct (override)'}
+      >
+        {overriding ? '...' : isOverridden ? 'Undo' : 'Override'}
+      </button>
+    </div>
+  );
+}
+
+const DIFF_STYLE = {
+  FIXED: { label: 'Fixed', color: 'text-emerald-600 bg-emerald-500/10' },
+  REGRESSED: { label: 'Regressed', color: 'text-red-600 bg-red-500/10' },
+  NEW: { label: 'New', color: 'text-blue-600 bg-blue-500/10' },
+  REMOVED: { label: 'Removed', color: 'text-muted-foreground bg-muted' },
+};
+
+function RoundDiff({ roundA, roundB }) {
+  const [diff, setDiff] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  async function loadDiff() {
+    setLoading(true);
+    try {
+      const res = await compareRounds(roundA, roundB);
+      setDiff(res?.data ?? res);
+    } catch { setDiff(null); }
+    finally { setLoading(false); }
+  }
+
+  if (!diff && !loading) {
+    return (
+      <button onClick={loadDiff}
+        className='text-[10px] text-violet-600 hover:underline'>
+        Compare with previous round
+      </button>
+    );
+  }
+  if (loading) return <span className='text-[10px] text-muted-foreground'>Loading diff...</span>;
+  if (!diff?.changes?.length) return <span className='text-[10px] text-muted-foreground'>No changes</span>;
+
+  return (
+    <div className='space-y-1 mt-2'>
+      <div className='flex gap-2 text-[10px]'>
+        <span className='text-emerald-600'>{diff.fixed} fixed</span>
+        <span className='text-red-600'>{diff.regressed} regressed</span>
+      </div>
+      {diff.changes.map((c, i) => {
+        const s = DIFF_STYLE[c.change] ?? DIFF_STYLE.NEW;
+        return (
+          <div key={i} className='flex items-center gap-2 text-[11px]'>
+            <Badge variant='outline' className={`text-[9px] px-1.5 py-0 ${s.color}`}>{s.label}</Badge>
+            <span className='font-medium'>{c.ruleName}</span>
+            <span className='text-muted-foreground truncate'>{c.message}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ValidationRoundsSection({ jobId }) {
+  const queryClient = useQueryClient();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [revalidating, setRevalidating] = useState(false);
+  const [expanded, setExpanded] = useState(null);
+
+  const fetchRounds = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getJobValidations(jobId);
+      setData(res?.data ?? res);
+    } catch {
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [jobId]);
+
+  // Load on mount
+  useState(() => { fetchRounds(); });
+
+  async function handleRevalidate() {
+    if (!confirm('Re-validate this job? Only changed items will be re-checked.')) return;
+    setRevalidating(true);
+    try {
+      await revalidateJob(jobId);
+      await fetchRounds();
+      queryClient.invalidateQueries({ queryKey: ['generation', 'validation', 'overview'] });
+    } catch (e) {
+      alert('Re-validation failed: ' + (e?.message ?? 'unknown error'));
+    } finally {
+      setRevalidating(false);
+    }
+  }
+
+  const rounds = data?.rounds ?? [];
+
+  return (
+    <div className='space-y-3'>
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-2'>
+          <ShieldCheck size={15} className='text-violet-500' />
+          <h3 className='text-sm font-semibold text-muted-foreground'>
+            Validation Rounds ({rounds.length})
+          </h3>
+        </div>
+        <button
+          onClick={handleRevalidate}
+          disabled={revalidating}
+          className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+                     bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 disabled:opacity-50 transition-colors'
+        >
+          {revalidating ? <Loader2 size={12} className='animate-spin' /> : <RefreshCw size={12} />}
+          {revalidating ? 'Validating...' : 'Re-validate'}
+        </button>
+      </div>
+
+      {loading ? (
+        <div className='h-20 rounded-lg bg-muted animate-pulse' />
+      ) : rounds.length === 0 ? (
+        <p className='text-xs text-muted-foreground text-center py-4'>No validation rounds yet.</p>
+      ) : (
+        <div className='space-y-2'>
+          {rounds.map((round, idx) => {
+            const isOpen = expanded === round.id;
+            const passRate = Number(round.passRate ?? 0);
+            const isPerfect = passRate === 100;
+            const isGood = passRate >= 80;
+            const prevRound = idx > 0 ? rounds[idx - 1] : null;
+
+            return (
+              <div key={round.id} className='rounded-lg border'>
+                <button
+                  onClick={() => setExpanded(isOpen ? null : round.id)}
+                  className='w-full flex items-center justify-between p-3 text-left hover:bg-muted/50 transition-colors'
+                >
+                  <div className='flex items-center gap-3'>
+                    {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    <span className='text-sm font-medium'>Round {round.roundNumber}</span>
+                    <Badge variant='outline' className={round.triggerType === 'AUTO' ? 'text-blue-600' : 'text-violet-600'}>
+                      {round.triggerType}
+                    </Badge>
+                    <span className='text-[11px] text-muted-foreground'>
+                      {round.createdAt ? new Date(round.createdAt).toLocaleString() : ''}
+                    </span>
+                  </div>
+                  <div className='flex items-center gap-3 text-xs'>
+                    <span className='text-emerald-600'>{round.passedChecks} passed</span>
+                    <span className='text-red-600'>{round.failedChecks} failed</span>
+                    <span className={`font-bold ${isPerfect ? 'text-emerald-600' : isGood ? 'text-amber-600' : 'text-red-600'}`}>
+                      {fmtPct(round.passRate)}
+                    </span>
+                  </div>
+                </button>
+
+                {isOpen && (
+                  <div className='border-t px-4 py-3 space-y-2'>
+                    {/* Diff with previous round */}
+                    {prevRound && <RoundDiff roundA={prevRound.id} roundB={round.id} />}
+
+                    {/* Failure list with override buttons */}
+                    {round.failures?.length > 0 ? (
+                      <div className='space-y-1.5'>
+                        {round.failures.map((f) => (
+                          <FailureItem key={f.id} f={f} onOverride={fetchRounds} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className='text-xs text-emerald-600 flex items-center gap-1.5'>
+                        <CheckCircle2 size={12} /> All checks passed
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function JobDetailPanel({ jobId, onBack }) {
+  const queryClient = useQueryClient();
   const { data: res, isLoading } = useJobDetail(jobId);
   const detail = res?.data ?? {};
   const tasks = detail.tasks ?? [];
   const [expandedTask, setExpandedTask] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null); // Fix 5
+  const [stopping, setStopping] = useState(false);
+  const [resuming, setResuming] = useState(false);
+
+  const isRunning = detail.status === 'IN_PROGRESS' || detail.status === 'PENDING';
+  const isResumable = detail.status === 'CANCELLED' || detail.status === 'FAILED' || detail.status === 'PARTIALLY_COMPLETED';
+
+  const handleStop = useCallback(async () => {
+    if (!confirm('Stop this generation job?')) return;
+    setStopping(true);
+    try {
+      await stopJob(jobId);
+      queryClient.invalidateQueries({ queryKey: ['generation', 'job', jobId] });
+    } catch (e) {
+      alert('Stop failed: ' + (e?.message ?? 'unknown error'));
+    } finally {
+      setStopping(false);
+    }
+  }, [jobId, queryClient]);
+
+  const handleResume = useCallback(async () => {
+    setResuming(true);
+    try {
+      await resumeJob(jobId);
+      queryClient.invalidateQueries({ queryKey: ['generation', 'job', jobId] });
+    } catch (e) {
+      alert('Resume failed: ' + (e?.message ?? 'unknown error'));
+    } finally {
+      setResuming(false);
+    }
+  }, [jobId, queryClient]);
 
   // Fix 5: Filter tasks based on clicked stat card
   const filteredTasks = useMemo(() => {
@@ -1022,21 +1276,49 @@ export default function JobDetailPanel({ jobId, onBack }) {
   return (
     <div className='space-y-6'>
       {/* Header */}
-      <div className='flex items-center gap-3'>
-        <button onClick={onBack} className='p-1.5 rounded-lg hover:bg-muted transition-colors'>
-          <ArrowLeft size={18} />
-        </button>
+      <div className='flex items-center justify-between'>
         <div className='flex items-center gap-3'>
-          <div>
-            <h2 className='text-lg font-bold'>{detail.courseTitle ?? 'Job Detail'}</h2>
-            <p className='text-xs text-muted-foreground'>
-              Job #{jobId} · {detail.modelName} · {detail.status}
-            </p>
+          <button onClick={onBack} className='p-1.5 rounded-lg hover:bg-muted transition-colors'>
+            <ArrowLeft size={18} />
+          </button>
+          <div className='flex items-center gap-3'>
+            <div>
+              <h2 className='text-lg font-bold'>{detail.courseTitle ?? 'Job Detail'}</h2>
+              <p className='text-xs text-muted-foreground'>
+                Job #{jobId} · {detail.modelName} · {detail.status}
+              </p>
+            </div>
+            {detail.jobType && (() => {
+              const jt = JOB_TYPE_STYLE[detail.jobType];
+              return jt ? <Badge variant='outline' className={jt.color}>{jt.label}</Badge> : null;
+            })()}
           </div>
-          {detail.jobType && (() => {
-            const jt = JOB_TYPE_STYLE[detail.jobType];
-            return jt ? <Badge variant='outline' className={jt.color}>{jt.label}</Badge> : null;
-          })()}
+        </div>
+
+        {/* Job actions */}
+        <div className='flex items-center gap-2'>
+          {isRunning && (
+            <button
+              onClick={handleStop}
+              disabled={stopping}
+              className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+                         bg-red-500/10 text-red-600 hover:bg-red-500/20 disabled:opacity-50 transition-colors'
+            >
+              <Square size={12} />
+              {stopping ? 'Stopping...' : 'Stop'}
+            </button>
+          )}
+          {isResumable && (
+            <button
+              onClick={handleResume}
+              disabled={resuming}
+              className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+                         bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 disabled:opacity-50 transition-colors'
+            >
+              <Play size={12} />
+              {resuming ? 'Resuming...' : 'Resume'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -1051,6 +1333,9 @@ export default function JobDetailPanel({ jobId, onBack }) {
 
           {/* Generation form inputs */}
           <FormInputsSection d={detail} />
+
+          {/* Validation Rounds */}
+          <ValidationRoundsSection jobId={jobId} />
 
           {/* Lecture breakdown */}
           <div>

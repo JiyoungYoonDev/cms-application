@@ -19,6 +19,7 @@ import { ItemPreviewModal } from '@/features/lectures/components/items/item-prev
 import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { regenerateItem } from '@/features/courses/services/generation-service';
 import { RefreshCw } from 'lucide-react';
+import { ScopedValidationPanel } from '@/features/generation/components/scoped-validation-panel';
 
 // Lightweight stand-in nodes for generateHTML (no React view needed)
 const MathBlockPreview = Node.create({
@@ -504,6 +505,10 @@ export default function LectureItemDetailPage({ params }) {
 
       <section className='rounded-2xl border bg-card p-6 shadow-sm'>
         <ContentPreview content={item?.contentJson ?? item?.content} itemType={item?.itemType} />
+      </section>
+
+      <section className='rounded-2xl border bg-card p-6 shadow-sm'>
+        <ScopedValidationPanel scopeType='ITEM' targetId={itemId} />
       </section>
     </div>
   );

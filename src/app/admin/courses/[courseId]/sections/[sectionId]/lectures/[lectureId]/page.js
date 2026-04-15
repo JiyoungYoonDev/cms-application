@@ -10,6 +10,7 @@ import { useSectionById } from '@/features/sections/hooks/use-section';
 import { regenerateLecture, reconvertLecture } from '@/features/courses/services/generation-service';
 import { RefreshCw, RotateCcw, Sparkles } from 'lucide-react';
 import ItemGenerateModal from '@/features/courses/components/generate/item-generate-modal';
+import { ScopedValidationPanel } from '@/features/generation/components/scoped-validation-panel';
 
 export default function LectureManagePage({ params }) {
   const router = useRouter();
@@ -118,6 +119,10 @@ export default function LectureManagePage({ params }) {
           lectureId={lectureId}
           basePath={`/admin/courses/${courseId}/sections/${sectionId}/lectures/${lectureId}`}
         />
+      </section>
+
+      <section className='rounded-2xl border bg-card p-6 shadow-sm'>
+        <ScopedValidationPanel scopeType='LECTURE' targetId={lectureId} />
       </section>
     </div>
   );
