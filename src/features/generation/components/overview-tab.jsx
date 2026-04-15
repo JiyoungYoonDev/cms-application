@@ -53,6 +53,13 @@ const JOB_STATUS = {
   PENDING:               { color: 'bg-muted text-muted-foreground', label: 'Pending' },
 };
 
+const JOB_TYPE = {
+  COURSE:  { color: 'bg-violet-500/10 text-violet-600 border-violet-200', label: 'Course' },
+  SECTION: { color: 'bg-sky-500/10 text-sky-600 border-sky-200', label: 'Section' },
+  LECTURE: { color: 'bg-teal-500/10 text-teal-600 border-teal-200', label: 'Lecture' },
+  ITEM:    { color: 'bg-orange-500/10 text-orange-600 border-orange-200', label: 'Item' },
+};
+
 // ── Stat Card ──
 
 function StatCard({ icon: Icon, label, value, sub, color = 'bg-primary/10 text-primary', alert, onClick, active }) {
@@ -244,9 +251,11 @@ export default function OverviewTab() {
   const [showTokenBreakdown, setShowTokenBreakdown] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
   const [showLatencyBreakdown, setShowLatencyBreakdown] = useState(false);
+  const [typeFilter, setTypeFilter] = useState(null); // 'COURSE' | 'SECTION' | 'LECTURE' | 'ITEM' | null
 
   const ov = overviewRes?.data ?? {};
-  const jobs = jobsRes?.data ?? [];
+  const allJobs = jobsRes?.data ?? [];
+  const jobs = typeFilter ? allJobs.filter(j => j.jobType === typeFilter) : allJobs;
 
   if (selectedJobId) {
     return <JobDetailPanel jobId={selectedJobId} onBack={() => setSelectedJobId(null)} />;
@@ -371,7 +380,28 @@ export default function OverviewTab() {
 
       {/* Jobs table */}
       <div>
-        <h3 className='text-sm font-semibold text-muted-foreground mb-3'>Generation Jobs</h3>
+        <div className='flex items-center justify-between mb-3'>
+          <h3 className='text-sm font-semibold text-muted-foreground'>
+            Generation Jobs{typeFilter ? ` (${jobs.length} of ${allJobs.length})` : ` (${allJobs.length})`}
+          </h3>
+          <div className='flex items-center gap-1'>
+            {['COURSE', 'SECTION', 'LECTURE', 'ITEM'].map((t) => {
+              const jt = JOB_TYPE[t];
+              const isActive = typeFilter === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(isActive ? null : t)}
+                  className={`text-[11px] px-2.5 py-1 rounded-full border font-medium transition-colors
+                    ${isActive ? jt.color + ' border-current' : 'text-muted-foreground border-transparent hover:border-muted-foreground/30'}
+                  `}
+                >
+                  {jt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <div className='rounded-xl border bg-card overflow-hidden'>
           {loadingJobs ? (
             <div className='p-6 space-y-3'>
@@ -384,6 +414,7 @@ export default function OverviewTab() {
               <thead>
                 <tr className='border-b bg-muted/30'>
                   <th className='text-left px-4 py-2.5 font-medium text-muted-foreground'>Course</th>
+                  <th className='text-left px-4 py-2.5 font-medium text-muted-foreground'>Type</th>
                   <th className='text-left px-4 py-2.5 font-medium text-muted-foreground'>Status</th>
                   <th className='text-right px-4 py-2.5 font-medium text-muted-foreground'>Lectures</th>
                   <th className='text-right px-4 py-2.5 font-medium text-muted-foreground'>Tokens</th>
@@ -404,7 +435,23 @@ export default function OverviewTab() {
                     >
                       <td className='px-4 py-3'>
                         <p className='font-medium truncate max-w-[240px]'>{job.courseTitle ?? '-'}</p>
-                        <p className='text-xs text-muted-foreground'>{job.modelName}</p>
+                        {job.sectionTitle && (
+                          <p className='text-xs text-muted-foreground truncate max-w-[240px]'>§ {job.sectionTitle}</p>
+                        )}
+                        {job.lectureTitle && (
+                          <p className='text-xs text-muted-foreground truncate max-w-[240px]'>↳ {job.lectureTitle}</p>
+                        )}
+                        {!job.sectionTitle && !job.lectureTitle && (
+                          <p className='text-xs text-muted-foreground'>{job.modelName}</p>
+                        )}
+                      </td>
+                      <td className='px-4 py-3'>
+                        {(() => {
+                          const jt = JOB_TYPE[job.jobType];
+                          return jt
+                            ? <Badge variant='outline' className={jt.color}>{jt.label}</Badge>
+                            : <span className='text-xs text-muted-foreground'>-</span>;
+                        })()}
                       </td>
                       <td className='px-4 py-3'>
                         <Badge variant='outline' className={s.color}>{s.label}</Badge>

@@ -16,7 +16,9 @@ import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { CodingSetFields } from '@/features/lectures/components/items/coding-set-fields';
 import { QuizSetFields } from '@/features/lectures/components/items/quiz-set-fields';
 import { CheckpointFields } from '@/features/lectures/components/items/checkpoint-fields';
+import { ConceptFields } from '@/features/lectures/components/items/concept-fields';
 import { ProjectFields } from '@/features/lectures/components/items/project-fields';
+import { SectionPracticeFields } from '@/features/lectures/components/items/section-practice-fields';
 import { Header } from '@/components/common/layout/page-header';
 import { Type, AlignLeft } from 'lucide-react';
 import { useLectureItemById, useUpdateLectureItem, useUpdateLectureItemReviewStatus } from '@/features/lectures/hooks';
@@ -43,8 +45,20 @@ function parseContent(raw) {
   }
 }
 
+function splitSectionPractice(content) {
+  if (!content || typeof content !== 'object') return { doc: content, sectionPractice: [] };
+  const { sectionPractice, ...doc } = content;
+  return { doc, sectionPractice: Array.isArray(sectionPractice) ? sectionPractice : [] };
+}
+
 function ItemEditForm({ initial, onSave, onCancel, isPending }) {
-  const [values, setValues] = useState(initial);
+  const [values, setValues] = useState(() => {
+    if (initial.itemType === 'RICH_TEXT') {
+      const { doc, sectionPractice } = splitSectionPractice(initial.content);
+      return { ...initial, content: doc, sectionPractice };
+    }
+    return { ...initial, sectionPractice: [] };
+  });
 
   const handleChange = (field, value) => {
     setValues((prev) => ({ ...prev, [field]: value }));
@@ -56,7 +70,13 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
       window.alert('Title is required.');
       return;
     }
-    onSave(values);
+    const payload = { ...values };
+    // Merge sectionPractice back into content for RICH_TEXT
+    if (payload.itemType === 'RICH_TEXT' && payload.sectionPractice?.length > 0) {
+      payload.content = { ...payload.content, sectionPractice: payload.sectionPractice };
+    }
+    delete payload.sectionPractice;
+    onSave(payload);
   };
 
   return (
@@ -105,7 +125,7 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
               </Select>
             ),
           },
-          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'PROJECT' && values.itemType !== 'PROJECT_TASK' && values.itemType !== 'CHECKPOINT' ? [{
+          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'PROJECT' && values.itemType !== 'PROJECT_TASK' && values.itemType !== 'CHECKPOINT' && values.itemType !== 'RICH_TEXT' ? [{
             key: 'content',
             label: (
               <span className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40'>
@@ -136,6 +156,12 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
           onChange={(val) => handleChange('content', val)}
         />
       )}
+      {values.itemType === 'RICH_TEXT' && (
+        <ConceptFields
+          value={values.content}
+          onChange={(val) => handleChange('content', val)}
+        />
+      )}
       {values.itemType === 'CHECKPOINT' && (
         <CheckpointFields
           value={values.content}
@@ -146,6 +172,12 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
         <ProjectFields
           value={values.content}
           onChange={(val) => handleChange('content', val)}
+        />
+      )}
+      {values.itemType === 'RICH_TEXT' && (
+        <SectionPracticeFields
+          value={values.sectionPractice}
+          onChange={(val) => handleChange('sectionPractice', val)}
         />
       )}
       <div className='flex gap-2 justify-end'>

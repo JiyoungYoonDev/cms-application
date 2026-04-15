@@ -16,6 +16,7 @@ import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { CodingSetFields } from './coding-set-fields';
 import { QuizSetFields } from './quiz-set-fields';
 import { CheckpointFields } from './checkpoint-fields';
+import { ConceptFields } from './concept-fields';
 import { ProjectFields } from './project-fields';
 import { Type, AlignLeft, GripVertical } from 'lucide-react';
 import {
@@ -119,7 +120,7 @@ function ItemForm({ initial = EMPTY_FORM, onSave, onCancel, isPending }) {
               </Select>
             ),
           },
-          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'TEST_BLOCK' && values.itemType !== 'PROJECT' && values.itemType !== 'CHECKPOINT' ? [{
+          ...(values.itemType !== 'CODING_SET' && values.itemType !== 'QUIZ_SET' && values.itemType !== 'TEST_BLOCK' && values.itemType !== 'PROJECT' && values.itemType !== 'CHECKPOINT' && values.itemType !== 'RICH_TEXT' ? [{
             key: 'content',
             label: (
               <span className='flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-40'>
@@ -146,6 +147,12 @@ function ItemForm({ initial = EMPTY_FORM, onSave, onCancel, isPending }) {
       )}
       {(values.itemType === 'QUIZ_SET' || values.itemType === 'TEST_BLOCK') && (
         <QuizSetFields
+          value={values.content}
+          onChange={(val) => handleChange('content', val)}
+        />
+      )}
+      {values.itemType === 'RICH_TEXT' && (
+        <ConceptFields
           value={values.content}
           onChange={(val) => handleChange('content', val)}
         />

@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/ui/app-sidebar';
 
-export function ConditionalLayout({ children }) {
+export function ConditionalLayout({ children, sidebarWidth }) {
   const pathname = usePathname();
 
   if (pathname === '/login') {
@@ -12,7 +12,7 @@ export function ConditionalLayout({ children }) {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider initialWidth={sidebarWidth}>
       <AppSidebar />
       <SidebarInset className='min-h-screen bg-admin-light p-4 md:p-6 lg:p-8'>
         <SidebarTrigger />

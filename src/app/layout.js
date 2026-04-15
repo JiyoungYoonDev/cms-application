@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import 'katex/dist/katex.min.css';
@@ -20,7 +21,10 @@ export const metadata = {
   description: 'CodeHaja Admin CMS',
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const cookieStore = await cookies();
+  const sidebarWidth = Number(cookieStore.get('sidebar_width')?.value) || 256;
+
   return (
     <html lang='en'>
       <body
@@ -28,7 +32,7 @@ export default function RootLayout({ children }) {
       >
         <QueryProvider>
           <AuthProvider>
-            <ConditionalLayout>{children}</ConditionalLayout>
+            <ConditionalLayout sidebarWidth={sidebarWidth}>{children}</ConditionalLayout>
           </AuthProvider>
         </QueryProvider>
       </body>

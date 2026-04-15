@@ -5,7 +5,7 @@ import {
   ArrowLeft, CheckCircle2, XCircle, AlertTriangle,
   ChevronDown, ChevronRight, Clock, Zap, Target, DollarSign,
   AlertCircle, RefreshCw, Layers, BookOpen, FileCode2, Eye,
-  ShieldAlert, FileWarning, Search,
+  ShieldAlert, FileWarning, Search, Settings2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useJobDetail } from '../hooks/use-generation-job-detail';
@@ -951,6 +951,48 @@ function ValidationSection({ task, batches }) {
 // MAIN PANEL
 // ══════════════════════════════════════════
 
+// ── Job type + Form Inputs ──
+
+const JOB_TYPE_STYLE = {
+  COURSE:  { color: 'bg-violet-500/10 text-violet-600 border-violet-200', label: 'Course' },
+  SECTION: { color: 'bg-sky-500/10 text-sky-600 border-sky-200', label: 'Section' },
+  LECTURE: { color: 'bg-teal-500/10 text-teal-600 border-teal-200', label: 'Lecture' },
+  ITEM:    { color: 'bg-orange-500/10 text-orange-600 border-orange-200', label: 'Item' },
+};
+
+function FormInputsSection({ d }) {
+  const entries = [
+    { label: 'Job Type', value: d.jobType },
+    { label: 'Level', value: d.level },
+    { label: 'Target Audience', value: d.targetAudience },
+    { label: 'Sections', value: d.numberOfSections },
+    { label: 'Tone', value: d.tone },
+    { label: 'Access Policy', value: d.accessPolicy },
+    { label: 'Extra Instructions', value: d.extraInstructions },
+  ].filter(e => e.value != null && e.value !== '');
+
+  if (entries.length === 0) return null;
+
+  return (
+    <div className='rounded-xl border bg-card p-4'>
+      <h4 className='text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-1.5'>
+        <Settings2 size={13} />
+        Generation Inputs
+      </h4>
+      <div className='grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2'>
+        {entries.map(({ label, value }) => (
+          <div key={label} className={label === 'Extra Instructions' ? 'col-span-full' : ''}>
+            <p className='text-[10px] text-muted-foreground uppercase tracking-wider'>{label}</p>
+            <p className={`text-sm font-medium mt-0.5 ${label === 'Extra Instructions' ? 'whitespace-pre-wrap text-xs text-muted-foreground font-normal' : ''}`}>
+              {value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function JobDetailPanel({ jobId, onBack }) {
   const { data: res, isLoading } = useJobDetail(jobId);
   const detail = res?.data ?? {};
@@ -984,11 +1026,17 @@ export default function JobDetailPanel({ jobId, onBack }) {
         <button onClick={onBack} className='p-1.5 rounded-lg hover:bg-muted transition-colors'>
           <ArrowLeft size={18} />
         </button>
-        <div>
-          <h2 className='text-lg font-bold'>{detail.courseTitle ?? 'Job Detail'}</h2>
-          <p className='text-xs text-muted-foreground'>
-            Job #{jobId} · {detail.modelName} · {detail.status}
-          </p>
+        <div className='flex items-center gap-3'>
+          <div>
+            <h2 className='text-lg font-bold'>{detail.courseTitle ?? 'Job Detail'}</h2>
+            <p className='text-xs text-muted-foreground'>
+              Job #{jobId} · {detail.modelName} · {detail.status}
+            </p>
+          </div>
+          {detail.jobType && (() => {
+            const jt = JOB_TYPE_STYLE[detail.jobType];
+            return jt ? <Badge variant='outline' className={jt.color}>{jt.label}</Badge> : null;
+          })()}
         </div>
       </div>
 
@@ -1000,6 +1048,9 @@ export default function JobDetailPanel({ jobId, onBack }) {
         <>
           {/* Summary — Fix 5: pass filter state */}
           <JobSummary d={detail} activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
+
+          {/* Generation form inputs */}
+          <FormInputsSection d={detail} />
 
           {/* Lecture breakdown */}
           <div>

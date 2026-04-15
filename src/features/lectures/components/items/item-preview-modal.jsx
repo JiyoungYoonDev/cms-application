@@ -63,31 +63,50 @@ const EXTENSIONS = [
 
 // ─── KaTeX ────────────────────────────────────────────────────────────────────
 
+function decodeMathEntities(expr) {
+  return expr
+    .replace(/\t/g, '\\t').replace(/\x08/g, '\\b').replace(/\f/g, '\\f').replace(/\r/g, '\\r')
+    .replace(/\n/g, ' ')
+    .replace(/&amp;gt;/g, '>').replace(/&amp;lt;/g, '<').replace(/&amp;/g, '&')
+    .replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&quot;/g, '"');
+}
+
 function applyMathToHtml(html) {
   if (!html) return html;
-  let result = html.replace(/\$\$([^$<>]+)\$\$/g, (_, expr) => {
-    try { return katex.renderToString(expr.trim(), { displayMode: true, throwOnError: false }); }
+  // Allow < > in math (comparisons like $x > 3$); skip matches containing HTML tags
+  let result = html.replace(/\$\$([^$]+?)\$\$/g, (_, expr) => {
+    if (/<\/?[a-z][\w-]*[\s>\/]/i.test(expr)) return `$$${expr}$$`;
+    try { return katex.renderToString(decodeMathEntities(expr).trim(), { displayMode: true, throwOnError: false }); }
     catch { return `$$${expr}$$`; }
   });
-  result = result.replace(/\$([^$\n<>]+)\$/g, (_, expr) => {
-    try { return katex.renderToString(expr.trim(), { displayMode: false, throwOnError: false }); }
+  result = result.replace(/\$([^$]+?)\$/g, (_, expr) => {
+    if (/<\/?[a-z][\w-]*[\s>\/]/i.test(expr)) return `$${expr}$`;
+    try { return katex.renderToString(decodeMathEntities(expr).trim(), { displayMode: false, throwOnError: false }); }
     catch { return `$${expr}$`; }
   });
   return result;
 }
 
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function renderMath(text) {
   if (!text) return '';
+  // Escape HTML first so literal < > in math (e.g. $x > 3$) are safe
+  let result = escapeHtml(text);
   // Backtick inline code → <code> tags (before math processing to avoid conflicts)
-  let result = text.replace(/`([^`]+)`/g, (_, code) =>
+  result = result.replace(/`([^`]+)`/g, (_, code) =>
     `<code style="padding:1px 6px;border-radius:4px;background:#2a2a44;color:#c4b5fd;font-size:0.8em;font-family:monospace">${code}</code>`
   );
-  result = result.replace(/\$\$([^$]+)\$\$/g, (_, expr) => {
-    try { return katex.renderToString(expr.trim(), { displayMode: true, throwOnError: false }); }
+  result = result.replace(/\$\$([^$]+?)\$\$/g, (_, expr) => {
+    if (/<\/?[a-z][\w-]*[\s>\/]/i.test(expr)) return `$$${expr}$$`;
+    try { return katex.renderToString(decodeMathEntities(expr).trim(), { displayMode: true, throwOnError: false }); }
     catch { return expr; }
   });
-  result = result.replace(/\$([^$\n]+)\$/g, (_, expr) => {
-    try { return katex.renderToString(expr.trim(), { displayMode: false, throwOnError: false }); }
+  result = result.replace(/\$([^$]+?)\$/g, (_, expr) => {
+    if (/<\/?[a-z][\w-]*[\s>\/]/i.test(expr)) return `$${expr}$`;
+    try { return katex.renderToString(decodeMathEntities(expr).trim(), { displayMode: false, throwOnError: false }); }
     catch { return expr; }
   });
   return result;
