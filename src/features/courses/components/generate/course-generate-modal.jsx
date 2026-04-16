@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Sparkles, Loader2 } from 'lucide-react';
+import { X, Sparkles, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,7 @@ import { Fields } from '@/components/ui/form/Fields';
 import { useGenerateCourse } from '../../hooks';
 import {
   useCourseCategoriesQuery,
+  useCreateCourseCategoryMutation,
 } from '../../hooks/use-course-category-mutation';
 
 const INITIAL_FORM = {
@@ -28,9 +29,12 @@ export default function CourseGenerateModal({ open, onClose }) {
   const router = useRouter();
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState(null);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   const { data: categoriesData, isLoading: isLoadingCats } =
     useCourseCategoriesQuery();
+  const createCategoryMutation = useCreateCourseCategoryMutation();
 
   const categories = useMemo(
     () =>
@@ -54,6 +58,26 @@ export default function CourseGenerateModal({ open, onClose }) {
       setError(err?.message || 'Generation failed. Please try again.');
     },
   });
+
+  const handleCategorySubmit = async (e) => {
+    e?.preventDefault?.();
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    try {
+      const created = await createCategoryMutation.mutateAsync({
+        categoryName: trimmed,
+      });
+      const createdCategory = created?.data ?? created;
+      const createdId = createdCategory?.id ?? createdCategory?.categoryId;
+      if (createdId != null) {
+        setForm((prev) => ({ ...prev, categoryId: Number(createdId) }));
+      }
+      setIsAddingCategory(false);
+      setNewCategoryName('');
+    } catch (err) {
+      console.error('Failed to create category:', err);
+    }
+  };
 
   const handleSubmit = () => {
     setError(null);
@@ -129,20 +153,59 @@ export default function CourseGenerateModal({ open, onClose }) {
                 key: 'category',
                 label: 'Category *',
                 child: (
-                  <Dropdown
-                    data={categories}
-                    value={
-                      form.categoryId != null ? String(form.categoryId) : ''
-                    }
-                    onChange={(val) =>
-                      setForm({ ...form, categoryId: val ? Number(val) : null })
-                    }
-                    placeholder={
-                      isLoadingCats ? 'Loading...' : 'Select Category'
-                    }
-                    valueKey='id'
-                    labelKey='categoryName'
-                  />
+                  <div className='relative space-y-3'>
+                    <Dropdown
+                      data={categories}
+                      value={
+                        form.categoryId != null ? String(form.categoryId) : ''
+                      }
+                      onChange={(val) => {
+                        setIsAddingCategory(false);
+                        setForm({ ...form, categoryId: val ? Number(val) : null });
+                      }}
+                      placeholder={
+                        isLoadingCats ? 'Loading...' : 'Select Category'
+                      }
+                      valueKey='id'
+                      labelKey='categoryName'
+                      onAddClick={() => setIsAddingCategory(true)}
+                      add
+                    />
+
+                    {isAddingCategory && (
+                      <div className='p-4 rounded-2xl border bg-background shadow-lg animate-in zoom-in-95 duration-200'>
+                        <div className='flex items-center justify-between mb-3 px-1'>
+                          <span className='text-[10px] font-black uppercase tracking-widest opacity-40'>
+                            New Category
+                          </span>
+                          <X
+                            size={14}
+                            className='cursor-pointer opacity-30 hover:opacity-100'
+                            onClick={() => setIsAddingCategory(false)}
+                          />
+                        </div>
+                        <div className='flex gap-2'>
+                          <Input
+                            autoFocus
+                            placeholder='Category Name'
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleCategorySubmit(e)}
+                            className='h-9 text-sm'
+                            disabled={createCategoryMutation.isPending}
+                          />
+                          <Button
+                            variant='publish'
+                            size='icon-sm'
+                            onClick={handleCategorySubmit}
+                            disabled={createCategoryMutation.isPending}
+                          >
+                            <Check size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ),
               },
               {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Crown, X } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useSubscriptions, useGrantSubscription, useCancelSubscription } from '@/features/subscriptions/hooks/use-subscriptions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -167,8 +168,8 @@ export default function SubscriptionsPage() {
             {isLoading ? (
               [...Array(8)].map((_, i) => (
                 <tr key={i} className='border-b border-border/50'>
-                  <td className='px-4 py-3'><div className='space-y-1.5'><div className='h-3.5 w-32 rounded bg-muted animate-pulse' /><div className='h-3 w-44 rounded bg-muted animate-pulse' /></div></td>
-                  {[...Array(5)].map((_, j) => <td key={j} className='px-4 py-3'><div className='h-5 w-16 rounded-full bg-muted animate-pulse' /></td>)}
+                  <td className='px-4 py-3'><div className='space-y-1.5'><Skeleton className='h-3.5 w-32' /><Skeleton className='h-3 w-44' /></div></td>
+                  {[...Array(5)].map((_, j) => <td key={j} className='px-4 py-3'><Skeleton className='h-5 w-16 rounded-full' /></td>)}
                 </tr>
               ))
             ) : subs.length === 0 ? (

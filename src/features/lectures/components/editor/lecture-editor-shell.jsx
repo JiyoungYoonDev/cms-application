@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { LectureEditorPanel } from './lecture-editor-panel';
 import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { Header } from '@/components/common/layout/page-header';
+import FormPageShell from '@/components/common/forms/form-page-shell';
+import FormSidebar from '@/components/common/forms/form-sidebar';
 import {
   useCreateLecture,
   useLectureById,
@@ -144,48 +146,50 @@ export function LectureEditorShell({ sectionId, lectureId, basePath }) {
   }, [draftHydrated, formValues, lectureId]);
 
   return (
-    <div className='grid gap-6 lg:grid-cols-[1fr_320px]'>
-      <div className='space-y-6'>
-        <Header
-          title={formValues.title || 'New Lecture'}
-          description={`Editing lecture in Section #${sectionId}`}
-          actions={
-            <>
-              <Button variant='outline' onClick={() => router.back()}>
-                Back
-              </Button>
+    <div className='space-y-6'>
+      <Header
+        title={formValues.title || 'New Lecture'}
+        description={`Editing lecture in Section #${sectionId}`}
+      />
+
+      <FormPageShell
+        main={
+          <section className='rounded-2xl border bg-card p-6 shadow-sm'>
+            <h2 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
+              Lecture Content
+            </h2>
+            <div className='mt-4 rounded-2xl border'>
+              <SimpleEditor
+                initialData={formValues.contentJson}
+                onChange={(json) =>
+                  setFormValues({ ...formValues, contentJson: json })
+                }
+              />
+            </div>
+          </section>
+        }
+        sidebar={
+          <>
+            <FormSidebar
+              description='Save or discard your lecture changes.'
+              onBack={() => router.back()}
+            >
               <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving ? 'Saving...' : 'Save Lecture'}
               </Button>
-            </>
-          }
-        />
+            </FormSidebar>
 
-        <section className='rounded-2xl border bg-card p-6 shadow-sm'>
-          <h2 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
-            Lecture Content
-          </h2>
-          <div className='mt-4 rounded-2xl border'>
-            <SimpleEditor
-              initialData={formValues.contentJson}
-              onChange={(json) =>
-                setFormValues({ ...formValues, contentJson: json })
-              }
-            />
-          </div>
-        </section>
-      </div>
-
-      <aside className='space-y-6'>
-        <section className='sticky top-6 rounded-2xl border bg-card p-6 shadow-sm'>
-          <h2 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
-            Lecture Settings
-          </h2>
-          <div className='mt-4'>
-            <LectureEditorPanel values={formValues} onChange={setFormValues} />
-          </div>
-        </section>
-      </aside>
+            <section className='rounded-2xl border bg-card p-6 shadow-sm'>
+              <h2 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
+                Lecture Settings
+              </h2>
+              <div className='mt-4'>
+                <LectureEditorPanel values={formValues} onChange={setFormValues} />
+              </div>
+            </section>
+          </>
+        }
+      />
     </div>
   );
 }

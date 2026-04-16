@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Search, ChevronLeft, ChevronRight, Shield, User, Ban, CheckCircle, MinusCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useUsers, useUpdateUserRole, useUpdateUserStatus } from '@/features/users/hooks/use-users';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -194,13 +195,13 @@ export default function UsersPage() {
                 <tr key={i} className='border-b border-border/50'>
                   <td className='px-4 py-3'>
                     <div className='space-y-1.5'>
-                      <div className='h-3.5 w-32 rounded bg-muted animate-pulse' />
-                      <div className='h-3 w-48 rounded bg-muted animate-pulse' />
+                      <Skeleton className='h-3.5 w-32' />
+                      <Skeleton className='h-3 w-48' />
                     </div>
                   </td>
                   {[...Array(5)].map((_, j) => (
                     <td key={j} className='px-4 py-3'>
-                      <div className='h-5 w-16 rounded-full bg-muted animate-pulse' />
+                      <Skeleton className='h-5 w-16 rounded-full' />
                     </td>
                   ))}
                 </tr>

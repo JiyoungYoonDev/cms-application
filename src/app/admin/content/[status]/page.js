@@ -3,6 +3,7 @@
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { FileEdit, Clock, Eye, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useContentItems } from '@/features/content/hooks/use-content';
 
 const STATUS_META = {
@@ -55,10 +56,10 @@ export default function ContentStatusPage({ params }) {
             {[...Array(8)].map((_, i) => (
               <div key={i} className='px-5 py-3.5 flex items-center gap-4'>
                 <div className='flex-1 space-y-1.5'>
-                  <div className='h-4 w-2/3 rounded bg-muted animate-pulse' />
-                  <div className='h-3 w-1/3 rounded bg-muted animate-pulse' />
+                  <Skeleton className='h-4 w-2/3' />
+                  <Skeleton className='h-3 w-1/3' />
                 </div>
-                <div className='h-5 w-20 rounded-full bg-muted animate-pulse' />
+                <Skeleton className='h-5 w-20 rounded-full' />
               </div>
             ))}
           </div>

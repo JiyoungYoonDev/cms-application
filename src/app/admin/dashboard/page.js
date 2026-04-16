@@ -7,6 +7,7 @@ import {
   Plus, ArrowRight, CheckCircle2, Clock, Archive,
   FileEdit, Eye, AlertCircle,
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useDashboardStats } from '@/features/dashboard/hooks/use-dashboard';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -45,7 +46,7 @@ function StatCard({ icon: Icon, label, value, sub, color = 'bg-primary/10 text-p
       <div className='min-w-0'>
         <p className='text-sm text-muted-foreground font-medium'>{label}</p>
         {loading ? (
-          <div className='mt-1 h-7 w-16 rounded-md bg-muted animate-pulse' />
+          <Skeleton className='mt-1 h-7 w-16' />
         ) : (
           <p className='text-2xl font-bold tracking-tight mt-0.5'>{fmt(value)}</p>
         )}
@@ -181,7 +182,7 @@ export default function DashboardPage() {
           </div>
           {isLoading ? (
             <div className='space-y-2 mt-4'>
-              {[...Array(3)].map((_, i) => <div key={i} className='h-4 rounded bg-muted animate-pulse' />)}
+              {[...Array(3)].map((_, i) => <Skeleton key={i} className='h-4' />)}
             </div>
           ) : (
             <CourseStatusBar
@@ -235,7 +236,7 @@ export default function DashboardPage() {
               <div className='min-w-0'>
                 <p className='text-sm text-muted-foreground font-medium'>{label}</p>
                 {isLoading ? (
-                  <div className='mt-1 h-6 w-12 rounded bg-muted animate-pulse' />
+                  <Skeleton className='mt-1 h-6 w-12' />
                 ) : (
                   <p className='text-xl font-bold mt-0.5'>{fmt(value)}</p>
                 )}
@@ -263,10 +264,10 @@ export default function DashboardPage() {
             {[...Array(5)].map((_, i) => (
               <div key={i} className='px-5 py-3.5 flex items-center gap-4'>
                 <div className='flex-1 space-y-1.5'>
-                  <div className='h-4 w-2/3 rounded bg-muted animate-pulse' />
-                  <div className='h-3 w-1/3 rounded bg-muted animate-pulse' />
+                  <Skeleton className='h-4 w-2/3' />
+                  <Skeleton className='h-3 w-1/3' />
                 </div>
-                <div className='h-5 w-20 rounded-full bg-muted animate-pulse' />
+                <Skeleton className='h-5 w-20 rounded-full' />
               </div>
             ))}
           </div>
