@@ -1,7 +1,7 @@
 'use client';
 
 import { DataTable } from '@/components/common/data-display/table/data-table';
-import { getLectureColumns } from '@/constants/table/columns/lecture-columns';
+import { getLectureColumns } from './lecture-columns';
 import { LECTURES_TEXTS } from '@/features/lectures/constants/lectures-text-data';
 import { useDeleteLecture, useReorderLectures } from '@/features/lectures/hooks';
 import { useLectureTableStore } from '@/stores/table-store';

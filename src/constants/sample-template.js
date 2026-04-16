@@ -1,4 +1,4 @@
-export const INITIA_TEMPLATE_BOOK = {
+export const INITIAL_TEMPLATE = {
   type: 'doc',
   content: [
     // What You'll learn

@@ -1,5 +1,5 @@
 import { DataTable } from '@/components/common/data-display/table/data-table';
-import { getSectionsColumns } from '@/constants/table/columns/section-columns';
+import { getSectionsColumns } from './section-columns';
 import { SECTIONS_TEXTS } from '@/features/sections/constants/sections-text-data';
 import { useDeleteSection, useReorderSections } from '@/features/sections/hooks/use-section-mutation';
 import { useCourseSectionTableStore } from '@/stores/table-store';

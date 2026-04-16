@@ -1,5 +1,5 @@
 import { Checkbox } from '@/components/ui/checkbox';
-import { LectureForm } from '@/components/admin/cms/lecture-form';
+import { LectureForm } from './lecture-form';
 
 export function LectureEditorPanel({ values, onChange }) {
   return (

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { LectureEditorPanel } from '@/components/admin/cms/lecture-editor-panel';
+import { LectureEditorPanel } from './lecture-editor-panel';
 import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { Header } from '@/components/common/layout/page-header';
 import {

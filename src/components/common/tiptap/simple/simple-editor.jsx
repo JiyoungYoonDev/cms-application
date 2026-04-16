@@ -77,7 +77,7 @@ import { handleImageUpload, MAX_FILE_SIZE } from '@/lib/tiptap-utils';
 
 // --- Styles ---
 import '@/components/common/tiptap/simple/simple-editor.scss';
-import { INITIA_TEMPLATE_BOOK } from '@/constants/sample-template';
+import { INITIAL_TEMPLATE } from '@/constants/sample-template';
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
   return (
@@ -165,7 +165,7 @@ const MobileToolbarContent = ({ type, onBack }) => (
 );
 
 export function SimpleEditor({
-  initialData = INITIA_TEMPLATE_BOOK,
+  initialData = INITIAL_TEMPLATE,
   onChange,
   readOnly = false,
 }) {
