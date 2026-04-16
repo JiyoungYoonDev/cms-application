@@ -6,8 +6,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Inbox } from 'lucide-react';
 import { memo } from 'react';
 import { flexRender } from '@tanstack/react-table';
+
+const SKELETON_ROWS = 5;
 
 export const DataTableBox = memo(function DataTableBox({
   table,
@@ -15,6 +19,7 @@ export const DataTableBox = memo(function DataTableBox({
   rows,
   handleRowClick,
   columnsData,
+  emptyMessage = 'No data found.',
 }) {
   const columnCount =
     columnsData?.length ?? table.getAllLeafColumns().length ?? 0;
@@ -39,9 +44,15 @@ export const DataTableBox = memo(function DataTableBox({
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={columnCount}>Loading...</TableCell>
-            </TableRow>
+            Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+              <TableRow key={`skeleton-${i}`}>
+                {Array.from({ length: columnCount }).map((_, j) => (
+                  <TableCell key={`skeleton-${i}-${j}`}>
+                    <Skeleton className='h-4 w-3/4' />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
           ) : rows.length ? (
             rows.map((row) => (
               <TableRow
@@ -58,7 +69,12 @@ export const DataTableBox = memo(function DataTableBox({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columnCount}>No data found.</TableCell>
+              <TableCell colSpan={columnCount}>
+                <div className='flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground'>
+                  <Inbox className='h-10 w-10 opacity-40' />
+                  <p className='text-sm'>{emptyMessage}</p>
+                </div>
+              </TableCell>
             </TableRow>
           )}
         </TableBody>

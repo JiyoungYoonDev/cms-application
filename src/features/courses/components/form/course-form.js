@@ -7,7 +7,8 @@ import CourseBasicInfoFields from './course-basic-info-fields';
 import CourseEditorFields from './course-editor-fields';
 import CourseSectionFields from '../../../sections/components/form/course-sections-fields';
 import { Button } from '@/components/ui/button';
-import { Rocket, Save, ChevronLeft } from 'lucide-react';
+import { Rocket, Save } from 'lucide-react';
+import FormSidebar from '@/components/common/forms/form-sidebar';
 import { createEmptyCourseForm } from '../../utils/course-form-mappers';
 import { useCreateCourse, useUpdateCourse } from '../../hooks';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
@@ -147,52 +148,31 @@ export default function CourseForm({
         </div>
       }
       sidebar={
-        <div className='sticky top-10 space-y-6'>
-          <div className='p-8 border rounded-[32px] bg-card shadow-sm space-y-8'>
-            <div className='space-y-2'>
-              <h3 className='text-xs font-black uppercase tracking-widest opacity-40'>
-                Actions
-              </h3>
-              <p className='text-sm text-muted-foreground leading-relaxed'>
-                Please verify your updates before publishing.
-              </p>
-            </div>
+        <FormSidebar
+          onBack={() => { if (confirmLeave()) router.back(); }}
+          backLabel='Back to list'
+        >
+          <Button
+            variant='publish'
+            size='lg'
+            onClick={() => handleSubmit('PUBLISHED')}
+            disabled={loading}
+          >
+            <Rocket size={18} className='mr-2' />
+            {loading ? 'Processing...' : 'Publish Course'}
+          </Button>
 
-            <div className='flex flex-col gap-3'>
-              <Button
-                variant='publish'
-                size='lg'
-                onClick={() => handleSubmit('PUBLISHED')}
-                disabled={loading}
-              >
-                <Rocket size={18} className='mr-2' />
-                {loading ? 'Processing...' : 'Publish Course'}
-              </Button>
-
-              <Button
-                variant='outline'
-                size='lg'
-                className='rounded-xl font-bold border-input'
-                onClick={() => handleSubmit('DRAFT')}
-                disabled={loading}
-              >
-                <Save size={18} className='mr-2' />
-                Save as Draft
-              </Button>
-            </div>
-
-            <div className='pt-4 border-t'>
-              <Button
-                variant='ghost'
-                size='sm'
-                className='w-full justify-start text-muted-foreground'
-                onClick={() => { if (confirmLeave()) router.back(); }}
-              >
-                <ChevronLeft size={16} className='mr-1' /> Back to list
-              </Button>
-            </div>
-          </div>
-        </div>
+          <Button
+            variant='outline'
+            size='lg'
+            className='rounded-xl font-bold border-input'
+            onClick={() => handleSubmit('DRAFT')}
+            disabled={loading}
+          >
+            <Save size={18} className='mr-2' />
+            Save as Draft
+          </Button>
+        </FormSidebar>
       }
     />
   );
