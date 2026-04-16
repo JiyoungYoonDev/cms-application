@@ -79,15 +79,4 @@ describe('queryKeys', () => {
     });
   });
 
-  describe('problemBooks', () => {
-    it('returns base key array', () => {
-      expect(queryKeys.problemBooks).toEqual(['problem-courses']);
-    });
-  });
-
-  describe('problemBook', () => {
-    it('returns key with bookId', () => {
-      expect(queryKeys.problemBook(7)).toEqual(['problem-courses', 7]);
-    });
-  });
 });

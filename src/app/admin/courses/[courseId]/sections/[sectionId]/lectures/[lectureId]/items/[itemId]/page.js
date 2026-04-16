@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/providers/confirm-dialog-provider';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/common/layout/page-header';
@@ -13,6 +14,7 @@ import { ScopedValidationPanel } from '@/features/generation/components/scoped-v
 
 export default function LectureItemDetailPage({ params }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const { courseId, sectionId, lectureId, itemId } = use(params);
   const [regenerating, setRegenerating] = useState(false);
   const [regenResult, setRegenResult] = useState(null);
@@ -24,7 +26,12 @@ export default function LectureItemDetailPage({ params }) {
 
   async function handleRegenerate() {
     if (regenerating) return;
-    if (!window.confirm(`"${item?.title}" 의 콘텐츠를 다시 생성하시겠습니까?`)) return;
+    const ok = await confirm({
+      title: `Regenerate "${item?.title}"?`,
+      description: 'This will call AI again to regenerate content for this item.',
+      confirmLabel: 'Regenerate',
+    });
+    if (!ok) return;
     setRegenerating(true);
     setRegenResult(null);
     try {

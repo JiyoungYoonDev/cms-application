@@ -1,6 +1,8 @@
 'use client';
 
 import { use, useCallback, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { useConfirm } from '@/providers/confirm-dialog-provider';
 import { useRouter } from 'next/navigation';
 import { Header, HeaderAction } from '@/components/common/layout/page-header';
 import { StatsOverview } from '@/components/common/data-display/stats/stat-overview';
@@ -15,6 +17,7 @@ import { ScopedValidationPanel } from '@/features/generation/components/scoped-v
 
 export default function CourseDetailPage({ params }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const { courseId } = use(params);
   const { data: data, isLoading } = useCourse(courseId);
   const { mutate: deleteMutate, isPending: isDeleting } = useDeleteCourse({
@@ -72,14 +75,18 @@ export default function CourseDetailPage({ params }) {
   }, [router, courseId]);
 
   const handlePublishBook = useCallback(() => {
-    window.alert('Publish flow placeholder');
+    toast.info('Publish flow coming soon.');
   }, []);
 
-  const handleDeleteCourse = useCallback(() => {
-    if (window.confirm(`"${course.title}" 코스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
-      deleteMutate(courseId);
-    }
-  }, [course.title, courseId, deleteMutate]);
+  const handleDeleteCourse = useCallback(async () => {
+    const ok = await confirm({
+      title: `Delete "${course.title}"?`,
+      description: 'This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    });
+    if (ok) deleteMutate(courseId);
+  }, [course.title, courseId, deleteMutate, confirm]);
 
   const handleAddSection = useCallback(() => {
     router.push(`/admin/courses/${courseId}/sections/new`);

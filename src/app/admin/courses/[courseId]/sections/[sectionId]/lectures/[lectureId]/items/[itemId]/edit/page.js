@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,7 +68,7 @@ function ItemEditForm({ initial, onSave, onCancel, isPending }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!values.title.trim()) {
-      window.alert('Title is required.');
+      toast.warning('Title is required.');
       return;
     }
     const payload = { ...values };

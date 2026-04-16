@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import SectionBasicInfoFields from '@/features/sections/components/form/section-basic-info-fields';
 import FormPageShell from '@/components/common/forms/form-page-shell';
@@ -30,7 +31,7 @@ export default function NewSectionPage({ params }) {
         },
         onError: (error) => {
           console.error(error);
-          window.alert('Failed to create section');
+          toast.error('Failed to create section');
         },
       },
     );

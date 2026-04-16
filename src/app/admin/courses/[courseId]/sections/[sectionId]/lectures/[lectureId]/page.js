@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/providers/confirm-dialog-provider';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/common/layout/page-header';
 import { LectureItemsManager } from '@/features/lectures/components/items/lecture-items-manager';
@@ -14,6 +15,7 @@ import { ScopedValidationPanel } from '@/features/generation/components/scoped-v
 
 export default function LectureManagePage({ params }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const { courseId, sectionId, lectureId } = use(params);
   const [regenerating, setRegenerating] = useState(false);
   const [reconverting, setReconverting] = useState(false);
@@ -28,7 +30,12 @@ export default function LectureManagePage({ params }) {
 
   async function handleRegenerate() {
     if (regenerating) return;
-    if (!window.confirm(`"${lectureName}" 의 콘텐츠를 다시 생성하시겠습니까?`)) return;
+    const ok = await confirm({
+      title: `Regenerate "${lectureName}"?`,
+      description: 'This will call AI again to regenerate all content for this lecture.',
+      confirmLabel: 'Regenerate',
+    });
+    if (!ok) return;
     setRegenerating(true);
     setRegenResult(null);
     try {
@@ -43,7 +50,12 @@ export default function LectureManagePage({ params }) {
 
   async function handleReconvert() {
     if (reconverting) return;
-    if (!window.confirm(`"${lectureName}" 의 콘텐츠를 재변환하시겠습니까? (AI 재호출 없이 기존 출력을 다시 파싱합니다)`)) return;
+    const ok = await confirm({
+      title: `Reconvert "${lectureName}"?`,
+      description: 'Re-parses existing AI output without calling AI again.',
+      confirmLabel: 'Reconvert',
+    });
+    if (!ok) return;
     setReconverting(true);
     setRegenResult(null);
     try {

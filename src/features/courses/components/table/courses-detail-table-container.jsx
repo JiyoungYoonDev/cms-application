@@ -4,6 +4,7 @@ import { SECTIONS_TEXTS } from '@/features/sections/constants/sections-text-data
 import { useDeleteSection, useReorderSections } from '@/features/sections/hooks/use-section-mutation';
 import { useCourseSectionTableStore } from '@/stores/table-store';
 import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/providers/confirm-dialog-provider';
 import { useCallback, useMemo, useState } from 'react';
 
 export default function CourseSectionContainer({
@@ -12,6 +13,7 @@ export default function CourseSectionContainer({
   isLoading,
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const tableState = useCourseSectionTableStore();
   const [localSections, setLocalSections] = useState(null);
   const { mutate: reorder } = useReorderSections();
@@ -48,10 +50,16 @@ export default function CourseSectionContainer({
     [router, courseId],
   );
 
-  const handleDeleteSection = useCallback((section) => {
-    if (!window.confirm(`Delete "${section.title}"?`)) return;
+  const handleDeleteSection = useCallback(async (section) => {
+    const ok = await confirm({
+      title: `Delete "${section.title}"?`,
+      description: 'This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    });
+    if (!ok) return;
     removeSection({ courseId, sectionId: section.id });
-  }, [removeSection, courseId]);
+  }, [removeSection, courseId, confirm]);
 
   const sectionsColumns = useMemo(
     () =>

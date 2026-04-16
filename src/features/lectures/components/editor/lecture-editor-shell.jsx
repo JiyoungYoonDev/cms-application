@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { LectureEditorPanel } from './lecture-editor-panel';
 import { SimpleEditor } from '@/components/common/tiptap/simple/simple-editor';
 import { Header } from '@/components/common/layout/page-header';
@@ -85,7 +86,7 @@ export function LectureEditorShell({ sectionId, lectureId, basePath }) {
 
   const handleSave = useCallback(() => {
     if (!formValues.title.trim()) {
-      window.alert('Lecture title is required.');
+      toast.warning('Lecture title is required.');
       return;
     }
 

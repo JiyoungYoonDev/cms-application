@@ -43,8 +43,4 @@ export const queryKeys = {
     list: (lectureId) => [...queryKeys.lectureItems.lists(), lectureId],
     detail: (lectureId, itemId) => [...queryKeys.lectureItems.all, 'detail', lectureId, itemId],
   },
-  problemBooks: ['problem-courses'],
-  problemBook: (bookId) => ['problem-courses', bookId],
-  // courseCategories: ['course-categories'],
-  // courseCategory: (categoryId) => ['course-categories', categoryId],
 };

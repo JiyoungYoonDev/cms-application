@@ -6,10 +6,12 @@ import { LECTURES_TEXTS } from '@/features/lectures/constants/lectures-text-data
 import { useDeleteLecture, useReorderLectures } from '@/features/lectures/hooks';
 import { useLectureTableStore } from '@/stores/table-store';
 import { useRouter } from 'next/navigation';
+import { useConfirm } from '@/providers/confirm-dialog-provider';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export default function LecturesTableContainer({ sectionId, lectures, isLoading, baseUrl }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const tableState = useLectureTableStore();
   const [localLectures, setLocalLectures] = useState(null);
   const { mutate: reorder } = useReorderLectures();
@@ -68,10 +70,16 @@ export default function LecturesTableContainer({ sectionId, lectures, isLoading,
     [router, baseUrl],
   );
 
-  const handleDelete = useCallback((lecture) => {
-    if (!window.confirm(`Delete "${lecture.title}"?`)) return;
+  const handleDelete = useCallback(async (lecture) => {
+    const ok = await confirm({
+      title: `Delete "${lecture.title}"?`,
+      description: 'This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    });
+    if (!ok) return;
     removeLecture({ sectionId, lectureId: lecture.id });
-  }, [removeLecture, sectionId]);
+  }, [removeLecture, sectionId, confirm]);
 
   const handleRowClick = useCallback(
     (row) => {

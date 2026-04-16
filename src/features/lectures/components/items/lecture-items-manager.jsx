@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { useConfirm } from '@/providers/confirm-dialog-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Fields } from '@/components/ui/form/Fields';
@@ -68,7 +70,7 @@ function ItemForm({ initial = EMPTY_FORM, onSave, onCancel, isPending }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!values.title.trim()) {
-      window.alert('Title is required.');
+      toast.warning('Title is required.');
       return;
     }
     onSave(values);
@@ -243,6 +245,7 @@ function SortableRow({ item, basePath, onDelete, isReordering }) {
 }
 
 export function LectureItemsManager({ lectureId, basePath }) {
+  const confirm = useConfirm();
   const { data, isLoading } = useLectureItems(lectureId);
   const { mutate: createItem, isPending: isCreating, error: createError } = useCreateLectureItem();
   const { mutate: reorderItems, isPending: isReorderSaving } = useReorderLectureItems();
@@ -299,11 +302,17 @@ export function LectureItemsManager({ lectureId, basePath }) {
   );
 
   const handleDelete = useCallback(
-    (item) => {
-      if (!window.confirm(`Delete "${item.title}"?`)) return;
+    async (item) => {
+      const ok = await confirm({
+        title: `Delete "${item.title}"?`,
+        description: 'This action cannot be undone.',
+        confirmLabel: 'Delete',
+        variant: 'destructive',
+      });
+      if (!ok) return;
       deleteItem({ itemId: item.id });
     },
-    [deleteItem],
+    [deleteItem, confirm],
   );
 
   if (isLoading) {

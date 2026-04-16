@@ -5,6 +5,8 @@ import 'katex/dist/katex.min.css';
 import { QueryProvider } from '@/providers/query-provider';
 import { AuthProvider } from '@/contexts/auth-context';
 import { ConditionalLayout } from '@/components/conditional-layout';
+import { Toaster } from '@/components/ui/sonner';
+import { ConfirmDialogProvider } from '@/providers/confirm-dialog-provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -32,7 +34,10 @@ export default async function RootLayout({ children }) {
       >
         <QueryProvider>
           <AuthProvider>
-            <ConditionalLayout sidebarWidth={sidebarWidth}>{children}</ConditionalLayout>
+            <ConfirmDialogProvider>
+              <ConditionalLayout sidebarWidth={sidebarWidth}>{children}</ConditionalLayout>
+            </ConfirmDialogProvider>
+            <Toaster richColors position='top-right' />
           </AuthProvider>
         </QueryProvider>
       </body>
