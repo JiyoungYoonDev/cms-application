@@ -2,27 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { X, Eye } from 'lucide-react';
-import { TiptapDark } from './preview/preview-tiptap';
-import { QuizSetRenderer } from './preview/preview-quiz-renderer';
-import { CodingSetRenderer } from './preview/preview-coding-renderer';
-
-// ─── Generic content renderer ─────────────────────────────────────────────────
-
-function ContentRenderer({ item }) {
-  if (!item) return <p className='text-sm text-[#5a5a72]'>No content</p>;
-
-  const raw = item.contentJson ?? item.content;
-  let parsed = raw;
-  if (typeof raw === 'string') {
-    try { parsed = JSON.parse(raw); } catch { parsed = null; }
-  }
-
-  if (item.itemType === 'QUIZ_SET' || item.itemType === 'TEST_BLOCK') return <QuizSetRenderer contentJson={parsed} />;
-  if (item.itemType === 'CODING_SET') return <CodingSetRenderer contentJson={parsed} />;
-
-  // Default: Tiptap doc
-  return <TiptapDark doc={parsed} />;
-}
+import { ItemContentRenderer } from './preview/item-content-renderer';
 
 // ─── Modal shell ──────────────────────────────────────────────────────────────
 
@@ -97,7 +77,7 @@ export function ItemPreviewModal({ item, isLoading }) {
               {isLoading ? (
                 <p className='text-[#5a5a72] text-sm'>Loading...</p>
               ) : (
-                <ContentRenderer item={item} />
+                <ItemContentRenderer item={item} />
               )}
             </div>
           </div>

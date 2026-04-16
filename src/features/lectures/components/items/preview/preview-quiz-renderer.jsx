@@ -245,11 +245,11 @@ function toBlocks(contentJson) {
   return [];
 }
 
-export function QuizSetRenderer({ contentJson }) {
+export function QuizSetRenderer({ contentJson, initialShowSolutions = false }) {
   const blocks = toBlocks(contentJson);
   const quizBlocks = blocks.filter((b) => b.type === 'quiz');
   const [state, dispatch] = useReducer(quizReducer, quizBlocks, initQuizState);
-  const [showSolutions, setShowSolutions] = useState(false);
+  const [showSolutions, setShowSolutions] = useState(initialShowSolutions);
 
   if (blocks.length === 0) return <p className='text-sm text-[#5a5a72]'>No content</p>;
 
