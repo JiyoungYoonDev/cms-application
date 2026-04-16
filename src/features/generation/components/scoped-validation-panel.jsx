@@ -11,11 +11,7 @@ import {
   overrideValidation,
   validateByScope,
 } from '../services/generation-admin-service';
-
-function fmtPct(n) {
-  if (n == null) return '-';
-  return Number(n).toFixed(1) + '%';
-}
+import { fmtPct } from '../utils/formatters';
 
 // ── Failure row with override toggle ──
 

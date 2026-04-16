@@ -5,11 +5,7 @@ import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck, FlaskConical, Loader
 import { useValidationOverview } from '../hooks/use-validation-overview';
 import { runMathCheck } from '../services/generation-admin-service';
 import { useQueryClient } from '@tanstack/react-query';
-
-function fmtPct(n) {
-  if (n == null) return '-';
-  return Number(n).toFixed(1) + '%';
-}
+import { fmtPct } from '../utils/formatters';
 
 const RULE_META = {
   STRUCTURED_SCHEMA_VALID: { label: 'Structured Schema Valid', desc: 'AI returned parseable structured schema output', icon: ShieldCheck },

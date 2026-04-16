@@ -3,62 +3,19 @@
 import { useState } from 'react';
 import {
   Activity, Zap, DollarSign, Clock, AlertTriangle,
-  CheckCircle2, XCircle, AlertCircle, RefreshCw, Target,
-  ChevronRight, Layers, TrendingUp, Loader2,
+  CheckCircle2, AlertCircle, RefreshCw, Target,
+  ChevronRight, Layers,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { fmt, fmtCost, fmtMs, fmtPct, fmtDate } from '../utils/formatters';
+import { JOB_STATUS_STYLE, JOB_TYPE_STYLE } from '../utils/job-helpers';
 import { useGenerationOverview, useGenerationJobs } from '../hooks/use-generation-overview';
 import JobDetailPanel from './job-detail-panel';
 import DrillDownPanel from './drill-down-panel';
 import TokenBreakdownPanel from './token-breakdown-panel';
 import CostBreakdownPanel from './cost-breakdown-panel';
 import LatencyBreakdownPanel from './latency-breakdown-panel';
-
-// ── Helpers ──
-
-function fmt(n) {
-  if (n == null) return '-';
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'k';
-  return String(n);
-}
-
-function fmtCost(n) {
-  if (n == null) return '-';
-  return '$' + Number(n).toFixed(4);
-}
-
-function fmtMs(ms) {
-  if (ms == null) return '-';
-  if (ms >= 60_000) return (ms / 60_000).toFixed(1) + 'm';
-  if (ms >= 1_000) return (ms / 1_000).toFixed(1) + 's';
-  return ms + 'ms';
-}
-
-function fmtPct(n) {
-  if (n == null) return '-';
-  return Number(n).toFixed(1) + '%';
-}
-
-function fmtDate(iso) {
-  if (!iso) return '-';
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-const JOB_STATUS = {
-  COMPLETED:             { color: 'bg-emerald-500/10 text-emerald-600', label: 'Completed' },
-  FAILED:                { color: 'bg-red-500/10 text-red-600', label: 'Failed' },
-  PARTIALLY_COMPLETED:   { color: 'bg-amber-500/10 text-amber-600', label: 'Partial' },
-  IN_PROGRESS:           { color: 'bg-blue-500/10 text-blue-600', label: 'Running' },
-  PENDING:               { color: 'bg-muted text-muted-foreground', label: 'Pending' },
-};
-
-const JOB_TYPE = {
-  COURSE:  { color: 'bg-violet-500/10 text-violet-600 border-violet-200', label: 'Course' },
-  SECTION: { color: 'bg-sky-500/10 text-sky-600 border-sky-200', label: 'Section' },
-  LECTURE: { color: 'bg-teal-500/10 text-teal-600 border-teal-200', label: 'Lecture' },
-  ITEM:    { color: 'bg-orange-500/10 text-orange-600 border-orange-200', label: 'Item' },
-};
+import { StatusDistribution, FailureAnalysis, DailyTrend } from './overview-charts';
 
 // ── Stat Card ──
 
@@ -90,168 +47,17 @@ function Skeleton() {
   return <div className='h-20 rounded-xl bg-muted animate-pulse' />;
 }
 
-// ── Job Status Distribution Bar ──
-
-function StatusDistribution({ ov }) {
-  const total = ov.totalJobs ?? 0;
-  if (total === 0) return null;
-
-  const segments = [
-    { key: 'completed', count: ov.completedJobs ?? 0, color: 'bg-emerald-500', label: 'Completed' },
-    { key: 'partial', count: ov.partialJobs ?? 0, color: 'bg-amber-400', label: 'Partial' },
-    { key: 'failed', count: ov.failedJobs ?? 0, color: 'bg-red-500', label: 'Failed' },
-    { key: 'running', count: ov.runningJobs ?? 0, color: 'bg-blue-400', label: 'Running' },
-    { key: 'pending', count: ov.pendingJobs ?? 0, color: 'bg-muted-foreground/30', label: 'Pending' },
-  ].filter(s => s.count > 0);
-
-  return (
-    <div>
-      <div className='flex rounded-full overflow-hidden h-2.5 gap-0.5'>
-        {segments.map(s => (
-          <div key={s.key} className={`${s.color} transition-all`} style={{ width: `${(s.count / total) * 100}%` }} />
-        ))}
-      </div>
-      <div className='flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap'>
-        {segments.map(s => (
-          <span key={s.key} className='flex items-center gap-1'>
-            <span className={`w-2 h-2 rounded-full ${s.color} inline-block`} />
-            {s.count} {s.label}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── Failure Analysis ──
-
-function FailureAnalysis({ ov }) {
-  const reasons = ov.topFailureReasons ?? [];
-  const problemJobs = ov.problemJobs ?? [];
-
-  if (reasons.length === 0 && problemJobs.length === 0) return null;
-
-  return (
-    <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-      {/* Top failure reasons */}
-      {reasons.length > 0 && (
-        <div className='rounded-xl border bg-card p-4'>
-          <h4 className='text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-1.5'>
-            <AlertTriangle size={13} className='text-red-500' />
-            Top Failure Reasons
-          </h4>
-          <div className='space-y-2'>
-            {reasons.map((r, i) => {
-              const maxCount = reasons[0]?.count ?? 1;
-              return (
-                <div key={i}>
-                  <div className='flex items-center justify-between text-sm mb-0.5'>
-                    <span className='truncate mr-2'>{r.reason}</span>
-                    <span className='font-bold text-red-600 tabular-nums shrink-0'>{r.count}</span>
-                  </div>
-                  <div className='h-1.5 rounded-full bg-muted overflow-hidden'>
-                    <div className='h-full bg-red-500/60 rounded-full' style={{ width: `${(r.count / maxCount) * 100}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Problem jobs list */}
-      {problemJobs.length > 0 && (
-        <div className='rounded-xl border bg-card p-4'>
-          <h4 className='text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-1.5'>
-            <XCircle size={13} className='text-red-500' />
-            Failed / Partial Jobs
-          </h4>
-          <div className='space-y-2'>
-            {problemJobs.map((j) => {
-              const isFailed = j.status === 'FAILED';
-              return (
-                <div key={j.jobId} className={`rounded-lg p-2.5 border-l-2 ${isFailed ? 'border-l-red-500 bg-red-500/5' : 'border-l-amber-400 bg-amber-500/5'}`}>
-                  <div className='flex items-center justify-between mb-0.5'>
-                    <span className='text-sm font-medium truncate mr-2'>{j.courseTitle ?? `Job #${j.jobId}`}</span>
-                    <Badge variant='outline' className={`text-[10px] ${isFailed ? 'text-red-600 border-red-300' : 'text-amber-600 border-amber-300'}`}>
-                      {j.status}
-                    </Badge>
-                  </div>
-                  {j.totalLectures != null && (
-                    <p className='text-xs text-muted-foreground'>
-                      Lectures: {j.completedLectures ?? 0}/{j.totalLectures}
-                      {(j.failedLectures ?? 0) > 0 && <span className='text-red-500'> ({j.failedLectures} failed)</span>}
-                    </p>
-                  )}
-                  {j.errorMessage && (
-                    <p className='text-xs text-red-500 truncate mt-0.5'>{j.errorMessage}</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── 7-Day Trend ──
-
-function DailyTrend({ ov }) {
-  const trend = ov.dailyTrend ?? [];
-  if (trend.length === 0) return null;
-
-  const maxDay = Math.max(...trend.map(d => (d.completed ?? 0) + (d.failed ?? 0) + (d.partial ?? 0)), 1);
-
-  return (
-    <div className='rounded-xl border bg-card p-4'>
-      <h4 className='text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-1.5'>
-        <TrendingUp size={13} />
-        Last 7 Days
-      </h4>
-      <div className='flex items-end gap-1.5 h-20'>
-        {trend.map((d) => {
-          const c = d.completed ?? 0;
-          const f = d.failed ?? 0;
-          const p = d.partial ?? 0;
-          const total = c + f + p;
-          const height = total > 0 ? Math.max((total / maxDay) * 100, 8) : 4;
-          const dayLabel = d.date?.slice(5); // "04-02"
-
-          return (
-            <div key={d.date} className='flex-1 flex flex-col items-center gap-1' title={`${d.date}: ${c}C ${f}F ${p}P`}>
-              <div className='w-full flex flex-col-reverse gap-px rounded-sm overflow-hidden' style={{ height: `${height}%` }}>
-                {c > 0 && <div className='bg-emerald-500 flex-grow' style={{ flex: c }} />}
-                {p > 0 && <div className='bg-amber-400 flex-grow' style={{ flex: p }} />}
-                {f > 0 && <div className='bg-red-500 flex-grow' style={{ flex: f }} />}
-                {total === 0 && <div className='bg-muted w-full h-full' />}
-              </div>
-              <span className='text-[9px] text-muted-foreground'>{dayLabel}</span>
-            </div>
-          );
-        })}
-      </div>
-      <div className='flex items-center gap-3 mt-2 text-[10px] text-muted-foreground'>
-        <span className='flex items-center gap-1'><span className='w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block' />Completed</span>
-        <span className='flex items-center gap-1'><span className='w-1.5 h-1.5 rounded-full bg-amber-400 inline-block' />Partial</span>
-        <span className='flex items-center gap-1'><span className='w-1.5 h-1.5 rounded-full bg-red-500 inline-block' />Failed</span>
-      </div>
-    </div>
-  );
-}
-
 // ── Component ──
 
 export default function OverviewTab() {
   const { data: overviewRes, isLoading: loadingOverview } = useGenerationOverview();
   const { data: jobsRes, isLoading: loadingJobs } = useGenerationJobs();
   const [selectedJobId, setSelectedJobId] = useState(null);
-  const [drillDown, setDrillDown] = useState(null); // 'truncations' | 'partial' | 'parseRepair' | 'matchRate' | 'retries' | null
+  const [drillDown, setDrillDown] = useState(null);
   const [showTokenBreakdown, setShowTokenBreakdown] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
   const [showLatencyBreakdown, setShowLatencyBreakdown] = useState(false);
-  const [typeFilter, setTypeFilter] = useState(null); // 'COURSE' | 'SECTION' | 'LECTURE' | 'ITEM' | null
+  const [typeFilter, setTypeFilter] = useState(null);
 
   const ov = overviewRes?.data ?? {};
   const allJobs = jobsRes?.data ?? [];
@@ -297,24 +103,18 @@ export default function OverviewTab() {
                 active={showLatencyBreakdown} />
             </div>
 
-            {/* Status distribution bar */}
             <StatusDistribution ov={ov} />
 
-            {/* Token breakdown drill-down */}
             {showTokenBreakdown && (
               <div className='mt-3'>
                 <TokenBreakdownPanel data={ov} onClose={() => setShowTokenBreakdown(false)} />
               </div>
             )}
-
-            {/* Cost breakdown drill-down */}
             {showCostBreakdown && (
               <div className='mt-3'>
                 <CostBreakdownPanel data={ov} onClose={() => setShowCostBreakdown(false)} />
               </div>
             )}
-
-            {/* Latency breakdown drill-down */}
             {showLatencyBreakdown && (
               <div className='mt-3'>
                 <LatencyBreakdownPanel data={ov} onClose={() => setShowLatencyBreakdown(false)} />
@@ -360,7 +160,6 @@ export default function OverviewTab() {
                 active={drillDown === 'retries'} />
             </div>
 
-            {/* Drill-down panel */}
             {drillDown && (
               <div className='mt-3'>
                 <DrillDownPanel metricKey={drillDown} data={ov} onClose={() => setDrillDown(null)} />
@@ -386,7 +185,7 @@ export default function OverviewTab() {
           </h3>
           <div className='flex items-center gap-1'>
             {['COURSE', 'SECTION', 'LECTURE', 'ITEM'].map((t) => {
-              const jt = JOB_TYPE[t];
+              const jt = JOB_TYPE_STYLE[t];
               const isActive = typeFilter === t;
               return (
                 <button
@@ -426,7 +225,7 @@ export default function OverviewTab() {
               </thead>
               <tbody className='divide-y'>
                 {jobs.map((job) => {
-                  const s = JOB_STATUS[job.status] ?? JOB_STATUS.PENDING;
+                  const s = JOB_STATUS_STYLE[job.status] ?? JOB_STATUS_STYLE.PENDING;
                   return (
                     <tr
                       key={job.jobId}
@@ -447,14 +246,14 @@ export default function OverviewTab() {
                       </td>
                       <td className='px-4 py-3'>
                         {(() => {
-                          const jt = JOB_TYPE[job.jobType];
+                          const jt = JOB_TYPE_STYLE[job.jobType];
                           return jt
                             ? <Badge variant='outline' className={jt.color}>{jt.label}</Badge>
                             : <span className='text-xs text-muted-foreground'>-</span>;
                         })()}
                       </td>
                       <td className='px-4 py-3'>
-                        <Badge variant='outline' className={s.color}>{s.label}</Badge>
+                        <Badge variant='outline' className={`${s.bg} ${s.text}`}>{s.label}</Badge>
                       </td>
                       <td className='px-4 py-3 text-right tabular-nums'>
                         {job.totalLectures == null || job.totalLectures === 0 ? (

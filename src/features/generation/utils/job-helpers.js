@@ -68,6 +68,14 @@ export function collectAncestors(leaf, batchMap) {
 export const TASK_STATUSES = ['COMPLETED', 'FAILED', 'PARTIALLY_COMPLETED', 'PENDING'];
 export const BATCH_STATUSES = ['COMPLETED', 'FAILED', 'PARTIALLY_COMPLETED', 'PENDING'];
 
+export const JOB_STATUS_STYLE = {
+  COMPLETED:             { bg: 'bg-emerald-500/10', text: 'text-emerald-600', label: 'Completed' },
+  FAILED:                { bg: 'bg-red-500/10', text: 'text-red-600', label: 'Failed' },
+  PARTIALLY_COMPLETED:   { bg: 'bg-amber-500/10', text: 'text-amber-600', label: 'Partial' },
+  IN_PROGRESS:           { bg: 'bg-blue-500/10', text: 'text-blue-600', label: 'Running' },
+  PENDING:               { bg: 'bg-muted', text: 'text-muted-foreground', label: 'Pending' },
+};
+
 export const JOB_TYPE_STYLE = {
   COURSE:  { color: 'bg-violet-500/10 text-violet-600 border-violet-200', label: 'Course' },
   SECTION: { color: 'bg-sky-500/10 text-sky-600 border-sky-200', label: 'Section' },

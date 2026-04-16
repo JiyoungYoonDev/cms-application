@@ -3,22 +3,7 @@
 import { useState } from 'react';
 import { X, ExternalLink, Zap, BookOpen, Layers, FileCode2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-function fmt(n) {
-  if (n == null) return '-';
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'k';
-  return String(n);
-}
-
-function fmtCost(n) {
-  if (n == null) return '-';
-  return '$' + Number(n).toFixed(4);
-}
-
-function parseTitles(raw) {
-  try { return JSON.parse(raw || '[]'); } catch { return []; }
-}
+import { fmt, fmtCost, parseTitles } from '../utils/formatters';
 
 function TokenBar({ prompt, completion, max }) {
   const total = prompt + completion;

@@ -3,18 +3,7 @@
 import { useState } from 'react';
 import { X, ExternalLink, DollarSign, Layers, BookOpen, Zap, Cpu } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-function fmtCost(n) {
-  if (n == null) return '-';
-  return '$' + Number(n).toFixed(4);
-}
-
-function fmt(n) {
-  if (n == null) return '-';
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'k';
-  return String(n);
-}
+import { fmt, fmtCost } from '../utils/formatters';
 
 function CostBar({ value, max }) {
   if (!max || !value) return null;

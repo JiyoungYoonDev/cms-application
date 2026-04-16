@@ -6,20 +6,7 @@ import { ArrowLeft, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { getGenerationOutput } from '../services/generation-admin-service';
-
-function fmt(n) {
-  if (n == null) return '-';
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'k';
-  return String(n);
-}
-
-function fmtMs(ms) {
-  if (ms == null) return '-';
-  if (ms >= 60_000) return (ms / 60_000).toFixed(1) + 'm';
-  if (ms >= 1_000) return (ms / 1_000).toFixed(1) + 's';
-  return ms + 'ms';
-}
+import { fmt, fmtMs } from '../utils/formatters';
 
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
