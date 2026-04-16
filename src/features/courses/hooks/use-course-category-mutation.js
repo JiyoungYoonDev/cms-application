@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createCourseCategory } from '@/services/create-service';
-import { getCourseCategories } from '@/services/get-service';
+import { createCourseCategory, getCourseCategories } from '@/features/courses/services/course-service';
 
 import { queryKeys } from '@/lib/api/query-keys';
 

@@ -76,7 +76,7 @@ import { ThemeToggle } from '@/components/common/tiptap/simple/theme-toggle';
 import { handleImageUpload, MAX_FILE_SIZE } from '@/lib/tiptap-utils';
 
 // --- Styles ---
-import '@/components/common/tiptap/tiptap-templates/simple/simple-editor.scss';
+import '@/components/common/tiptap/simple/simple-editor.scss';
 import { INITIA_TEMPLATE_BOOK } from '@/constants/sample-template';
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
