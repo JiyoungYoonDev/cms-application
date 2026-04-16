@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const BACKEND_URL = process.env.BACKEND_INTERNAL_URL ?? 'http://localhost:8081';
+
 const nextConfig = {
   output: 'standalone',
   reactCompiler: true,
@@ -10,7 +12,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8081/api/:path*',
+        destination: `${BACKEND_URL}/api/:path*`,
       },
     ];
   },

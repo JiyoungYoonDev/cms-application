@@ -25,7 +25,6 @@ export const createLecture = async (sectionId, payload) => {
 };
 
 export const reorderLectures = async (sectionId, items) => {
-  console.log('Reorder request:', { url: lectureRoutes.reorder(sectionId), items });
   return apiFetch(lectureRoutes.reorder(sectionId), {
     method: 'PATCH',
     body: items,

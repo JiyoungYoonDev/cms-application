@@ -69,7 +69,6 @@ export default function ContentStatusPage({ params }) {
         ) : (
           <div className='divide-y'>
             {items.map((item) => {
-              console.log('ITEM', item);
               const editHref = item.courseId && item.sectionId && item.lectureId
                 ? `/admin/courses/${item.courseId}/sections/${item.sectionId}/lectures/${item.lectureId}/items/${item.id}`
                 : null;

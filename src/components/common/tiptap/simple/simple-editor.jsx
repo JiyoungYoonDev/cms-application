@@ -248,7 +248,6 @@ export function SimpleEditor({
       problem_category: category,
       problem_difficulty: difficulty,
     };
-    console.log('Submitting content:', payload);
     try {
       await createProblemBookMutation.mutateAsync(payload);
     } catch (error) {

@@ -20,7 +20,6 @@ export const createCourse = async (payload) => {
 };
 
 export const updateCourseMutation = async (id, payload) => {
-  console.log('ID', id);
   return apiFetch(courseRoutes.update(id), {
     method: 'PUT',
     body: payload,

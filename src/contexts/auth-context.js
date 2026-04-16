@@ -22,6 +22,10 @@ export function AuthProvider({ children }) {
       })
       .catch(() => {
         setUser(null);
+        // Stale or invalid cookie — clear it server-side and redirect to login.
+        // /api/cms/auth/logout is permitAll so this works even with expired tokens.
+        logoutApi().catch(() => {});
+        window.location.href = '/login';
       })
       .finally(() => setIsLoading(false));
   }, []);

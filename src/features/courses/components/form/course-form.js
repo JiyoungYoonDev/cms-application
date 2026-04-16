@@ -109,10 +109,8 @@ export default function CourseForm({
       status,
       sections,
     };
-    console.log('PAYLOAD ', payload);
     try {
       if (mode === 'edit' && courseId) {
-        console.log('Course ID ', courseId);
         await updateCourse.mutateAsync({ id: courseId, payload });
       } else {
         await createCourse.mutateAsync(payload);

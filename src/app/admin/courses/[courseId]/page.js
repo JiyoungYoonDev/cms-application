@@ -81,7 +81,6 @@ export default function CourseDetailPage({ params }) {
     }
   }, [course.title, courseId, deleteMutate]);
 
-  console.log('COURSE ', course);
   const handleAddSection = useCallback(() => {
     router.push(`/admin/courses/${courseId}/sections/new`);
   }, [router, courseId]);
